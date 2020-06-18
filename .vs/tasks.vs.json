@@ -1,0 +1,10 @@
+{
+  "version": "0.2.1",
+  "tasks": [
+    {
+      "taskLabel": "task-shot_object",
+      "appliesTo": "src/game/shot_object.cpp",
+      "type": "launch"
+    }
+  ]
+}
