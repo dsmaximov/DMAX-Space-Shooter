@@ -426,7 +426,7 @@ void Game::Render()
         // Render text (don't include in postprocessing)
         std::stringstream ss; ss << this->Score;
         Text->RenderText("Score:" + ss.str(), 5.0f, 5.0f, 1.0f);
-        Text->RenderText("Shields:", 170.0f, 5.0f, 1.0f);
+        Text->RenderText("Shields:", 172.0f, 5.0f, 1.0f);
         for (int i = 0; i < Shields; i++) Renderer->DrawSprite(ResourceManager::GetTexture("player_shields"), glm::vec2(295.0f + i * 45.0f, 10.0f), glm::vec2(40.0f, 10.0f));
         //TODO  remove std::stringstream ss1; ss1 << this->Shields;
         //      Text->RenderText("Shields:" + ss1.str(), 170.0f, 50.0f, 1.0f);

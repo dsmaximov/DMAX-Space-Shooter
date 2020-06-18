@@ -2,10 +2,12 @@
   "ExpandedNodes": [
     "",
     "\\res",
+    "\\res\\levels",
     "\\src",
     "\\src\\framework",
+    "\\src\\framework\\core",
     "\\src\\game"
   ],
-  "SelectedNode": "\\src\\game\\game_level.h",
+  "SelectedNode": "\\CMakeLists.txt",
   "PreviewInSolutionExplorer": false
 }
