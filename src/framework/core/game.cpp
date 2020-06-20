@@ -397,6 +397,7 @@ void Game::Render()
             //for (PowerUp &powerUp : this->PowerUps)
             //    if (!powerUp.Destroyed)
             //        powerUp.Draw(*Renderer);
+
             for (auto n : PowerUps)
             {
                 n->Draw(*Renderer);
