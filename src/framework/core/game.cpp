@@ -417,6 +417,7 @@ void Game::Render()
                     n->Draw();
                 }
             }
+
             //draw all player shots
             AllPlayerShots->Draw(*Renderer);
          // End rendering to postprocessing quad
