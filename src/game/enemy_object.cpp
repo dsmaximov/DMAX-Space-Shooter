@@ -33,17 +33,17 @@ glm::vec2 EnemyObject::Move(GLfloat dt, GLuint window_width)
 
     case 2: // type 2 - wobbling motion in X
     {    GLfloat WobbleXcoeff = 0.0f;
-        if (this->Velocity.x > HORIZONTAL_VELOCITY2 * 1.5f) { MaxXvelocityReachedRight = true; MaxXvelocityReachedLeft = false; }
-        if (this->Velocity.x < -HORIZONTAL_VELOCITY2 * 1.5f) { MaxXvelocityReachedLeft = true; MaxXvelocityReachedRight = false; }
+        if (this->Velocity.x > HORIZONTAL_VELOCITY2 * 1.5f) { MaxXvelocityReachedRight2 = true; MaxXvelocityReachedLeft2 = false; }
+        if (this->Velocity.x < -HORIZONTAL_VELOCITY2 * 1.5f) { MaxXvelocityReachedLeft2 = true; MaxXvelocityReachedRight2 = false; }
         if (this->Position.y > 0)
         {
             WobbleXcoeff = this->Position.y / 10;
         }
-        if (MaxXvelocityReachedLeft)
+        if (MaxXvelocityReachedLeft2)
         {
             Velocity.x += (HORIZONTAL_VELOCITY2 + WobbleXcoeff) * dt;
         }
-        if (MaxXvelocityReachedRight)
+        if (MaxXvelocityReachedRight2)
         {
             Velocity.x -= (HORIZONTAL_VELOCITY2 + WobbleXcoeff) * dt;
         }
@@ -57,7 +57,11 @@ glm::vec2 EnemyObject::Move(GLfloat dt, GLuint window_width)
         return this->Position;
         break;
 
-    case 4: // type 4 - straight down in y
+    case 4: // type 4 - acceleration in y
+        if (this->Position.y > 0)
+        {
+            this->Velocity.y += this->Position.y * dt;
+        }
         this->Position += this->Velocity * dt;
         return this->Position;
         break;

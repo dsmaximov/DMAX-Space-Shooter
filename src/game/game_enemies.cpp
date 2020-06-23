@@ -31,38 +31,38 @@ void GameEnemies::Load(const GLchar* file, GLuint levelWidth, GLuint levelHeight
 void GameEnemies::init(const std::vector<std::vector<GLuint>>& tileData, GLuint levelWidth, GLuint levelHeight)
 {
     // Calculate dimensions
-    GLuint height = tileData.size();
-    GLuint width = tileData[0].size(); // Note we can index vector at [0] since this function is only called if height > 0
-    GLfloat unit_width = levelWidth / static_cast<GLfloat>(width), unit_height = levelHeight / height;
+    GLuint enemy_lines = tileData.size();
+    GLuint enemy_ships_per_line = tileData[0].size(); // Note we can index vector at [0] since this function is only called if height > 0
+    //TODO delete GLfloat unit_width = levelWidth / static_cast<GLfloat>(enemy_ships_per_line), unit_height = levelHeight / enemy_lines;
     // Initialize level tiles based on tileData
-    for (GLuint y = 0; y < height; ++y)
+    for (GLint y = 0; y < enemy_lines; ++y)
     {
-        for (GLuint x = 0; x < width; ++x)
+        for (GLint x = 0; x < enemy_ships_per_line; ++x)
         {
             // Check block type from level data (2D level array)
             if (tileData[y][x] == 1) // Solid
             {
-                glm::vec2 pos(unit_width * x, unit_height * y - levelHeight); //start above the visible screen
+                glm::vec2 pos(ENEMY_DISTANCE * x, - ENEMY_DISTANCE * y); //start above the visible screen
                 this->Enemies.push_back(new EnemyObject(pos, ENEMYRADIUS1, ENEMYVELOCITY1, ENEMYTEXTURE1, ENEMYSTRENGHT1, SCOREPOINTS1, 1, NUMBEROFSHOTS1, SHOTVELOCITY1));
             }
             if (tileData[y][x] == 2) // Solid
             {
-                glm::vec2 pos(unit_width * x, unit_height * y - levelHeight); //- levelHeight * 2); //start above the visible screen
+                glm::vec2 pos(ENEMY_DISTANCE * x, - ENEMY_DISTANCE * y); //- levelHeight * 2); //start above the visible screen
                 this->Enemies.push_back(new EnemyObject(pos, ENEMYRADIUS2, ENEMYVELOCITY2, ENEMYTEXTURE2, ENEMYSTRENGHT2, SCOREPOINTS2, 2, NUMBEROFSHOTS2, SHOTVELOCITY2));
             }
             if (tileData[y][x] == 3) // Solid
             {
-                glm::vec2 pos(unit_width * x, unit_height * y - levelHeight); //- levelHeight * 2); //start above the visible screen
+                glm::vec2 pos(ENEMY_DISTANCE * x, - ENEMY_DISTANCE * y); //- levelHeight * 2); //start above the visible screen
                 this->Enemies.push_back(new EnemyObject(pos, ENEMYRADIUS3, ENEMYVELOCITY3, ENEMYTEXTURE3, ENEMYSTRENGHT3, SCOREPOINTS3, 3, NUMBEROFSHOTS3, SHOTVELOCITY3));
             }
             if (tileData[y][x] == 4) // Solid
             {
-                glm::vec2 pos(unit_width * x, unit_height * y - levelHeight); //- levelHeight * 2); //start above the visible screen
+                glm::vec2 pos(ENEMY_DISTANCE * x, - ENEMY_DISTANCE * y); //- levelHeight * 2); //start above the visible screen
                 this->Enemies.push_back(new EnemyObject(pos, ENEMYRADIUS4, ENEMYVELOCITY4, ENEMYTEXTURE4, ENEMYSTRENGHT4, SCOREPOINTS4, 4, NUMBEROFSHOTS4, SHOTVELOCITY4));
             }
             if (tileData[y][x] == 5) // Solid
             {
-                glm::vec2 pos(unit_width * x, unit_height * y - levelHeight); //- levelHeight * 2); //start above the visible screen
+                glm::vec2 pos(ENEMY_DISTANCE * x, - ENEMY_DISTANCE * y); //- levelHeight * 2); //start above the visible screen
                 this->Enemies.push_back(new EnemyObject(pos, ENEMYRADIUS5, ENEMYVELOCITY5, ENEMYTEXTURE5, ENEMYSTRENGHT5, SCOREPOINTS5, 5, NUMBEROFSHOTS5, SHOTVELOCITY5));
             }
 
@@ -76,17 +76,32 @@ void GameEnemies::Draw(SpriteRenderer& renderer)
         renderer.DrawSprite(n->Sprite, n->Position, n->Size, n->Rotation, n->Color); //render enemy
         switch (n->Strenght) // render shields
         {
-        case 5:
+        case 10:
             renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(1.0f, 1.0f, 1.0f));
             break;
+        case 9:
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(1.0f, 0.8f, 1.0f));
+            break;
+        case 8:
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(1.0f, 0.6f, 1.0f));
+            break;
+        case 7:
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(1.0f, 0.4f, 1.0f));
+            break;
+        case 6:
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(0.9f, 0.4f, 1.0f));
+            break;
+        case 5:
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(0.8f, 0.4f, 1.0f));
+            break;
         case 4:
-            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(0.9f, 0.8f, 1.0f));
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(0.7f, 0.4f, 1.0f));
             break;
         case 3:
-            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(0.8f, 0.6f, 1.0f));
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(0.6f, 0.4f, 1.0f));
             break;
         case 2:
-            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(0.7f, 0.4f, 1.0f));
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(0.5f, 0.4f, 1.0f));
             break;
         }
     }

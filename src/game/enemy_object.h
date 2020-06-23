@@ -41,10 +41,10 @@ private:
     const GLfloat HORIZONTAL_VELOCITY1 = 0.0f;
     const GLfloat HORIZONTAL_VELOCITY2 = 100.0f;
     const GLfloat HORIZONTAL_VELOCITY3 = 0.0f;
-    const GLfloat HORIZONTAL_VELOCITY4 = 0.0f;
+    const GLfloat HORIZONTAL_VELOCITY4 = 100.0f;
     const GLfloat HORIZONTAL_VELOCITY5 = 0.0f;
-    bool MaxXvelocityReachedRight = true; //used to control oscillating movement
-    bool MaxXvelocityReachedLeft = false;
+    bool MaxXvelocityReachedRight2 = true; //used to control oscillating movement in X for enemy 2
+    bool MaxXvelocityReachedLeft2 = false;
 };
 
 #endif

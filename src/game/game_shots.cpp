@@ -23,7 +23,7 @@ void GameShots::Move(GLfloat dt, GLuint window_width, GLuint window_height, glm:
     }
     for (auto it = Shots.begin(); it != Shots.end(); /*nothing*/)
     {
-        if ((*it)->OutOfBounds(window_width, window_height) == true)
+        if ((*it)->OutOfBounds(window_width, window_height) == GL_TRUE)
         {
             it = Shots.erase(it);
         }
