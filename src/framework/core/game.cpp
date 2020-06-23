@@ -29,6 +29,7 @@ using namespace irrklang;
 #include "game/enemy_object.h"
 #include "game/menu_button.h"
 #include "game/power_up.h"
+#include "game/high_scores.h"
 
 // Game-related State data
 SpriteRenderer    * Renderer;
@@ -56,6 +57,7 @@ MenuButton* ButtonNew;
 MenuButton* ButtonSave;
 MenuButton* ButtonLoad;
 MenuButton* ButtonHighScores;
+HighScores* HighScoresData;
 std::vector <MenuButton*> AllMenuButtons;
 std::vector<PowerUp*>   PowerUps;
 int ActiveMenuButton;
@@ -145,6 +147,8 @@ void Game::Init()
     AllMenuButtons.push_back(ButtonLoad);
     AllMenuButtons.push_back(ButtonHighScores);
     ButtonNew->Activate();
+    // Load HighScores
+    HighScoresData = new HighScores();
     // Load levels
     GameLevel one;   one.Load  ("res/levels/one.lvl", this->Width, this->Height * 1.5);
     GameLevel two;   two.Load  ("res/levels/two.lvl", this->Width, this->Height * 1.5);
@@ -158,6 +162,7 @@ void Game::Init()
     this->Level = 0;
     // Configure menu buttons
     ButtonNew->ButtonAvailable = true;
+    ButtonHighScores->ButtonAvailable = true;
     // Set active menu button
     ActiveMenuButton = 1;
     // Configure game objects
@@ -266,10 +271,15 @@ void Game::ProcessInput(GLfloat dt)
         if (this->Keys[GLFW_KEY_ENTER] && !this->KeysProcessed[GLFW_KEY_ENTER])
         {
             AllMenuButtons[ActiveMenuButton]->Press();
-            if (AllMenuButtons[1]->ButtonPressed)
+            if (ButtonNew->ButtonPressed) //start a new game
             {
                 this->State = GAME_ACTIVE;
-                AllMenuButtons[1]->UnPress();
+                ButtonNew->UnPress();
+            }
+            if (ButtonHighScores->ButtonPressed) 
+            {
+                this->State = GAME_HIGHSCORE;
+                ButtonNew->UnPress();
             }
             this->KeysProcessed[GLFW_KEY_ENTER] = GL_TRUE;          
         }
@@ -455,6 +465,10 @@ void Game::Render()
             int index = it - AllMenuButtons.begin();
             (*it)->Draw(*Renderer, *Text, MenuPositions[index], ButtonSize);
         }
+    }
+    if (this->State == GAME_HIGHSCORE)
+    {
+        HighScoresData->Draw(*Renderer,*Text);
     }
     if (this->State == GAME_WIN)
     {

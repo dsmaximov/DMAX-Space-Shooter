@@ -25,7 +25,8 @@ enum GameState {
     GAME_ACTIVE,
     GAME_MENU,
     GAME_WIN,
-    GAME_LOSE
+    GAME_LOSE,
+    GAME_HIGHSCORE
 };
 
 // Represents the four possible (collision) directions

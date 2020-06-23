@@ -95,7 +95,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
         if (Breakout.State == GAME_MENU) glfwSetWindowShouldClose(window, GL_TRUE);
-        if (Breakout.State == GAME_ACTIVE || Breakout.State == GAME_LOSE) Breakout.State = GAME_MENU;
+        if (Breakout.State == GAME_ACTIVE || Breakout.State == GAME_LOSE || Breakout.State == GAME_HIGHSCORE) Breakout.State = GAME_MENU;
     }
 
     if (key >= 0 && key < 1024)
