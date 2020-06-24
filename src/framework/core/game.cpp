@@ -148,7 +148,9 @@ void Game::Init()
     AllMenuButtons.push_back(ButtonHighScores);
     ButtonNew->Activate();
     // Load HighScores
-    HighScoresData = new HighScores();
+    HighScoresData = new HighScores("res/high_scores/highscores.txt");
+    //TODO delete ofstream test
+    HighScoresData->InsertNewScore(0);
     // Load levels
     GameLevel one;   one.Load  ("res/levels/one.lvl", this->Width, this->Height * 1.5);
     GameLevel two;   two.Load  ("res/levels/two.lvl", this->Width, this->Height * 1.5);
@@ -468,7 +470,7 @@ void Game::Render()
     }
     if (this->State == GAME_HIGHSCORE)
     {
-        HighScoresData->Draw(*Renderer,*Text);
+        HighScoresData->Draw("res/high_scores/highscores.txt",*Renderer,*Text);
     }
     if (this->State == GAME_WIN)
     {

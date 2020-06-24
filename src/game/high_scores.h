@@ -18,11 +18,12 @@
 class HighScores
 {
 public:
-	HighScores();
-	void Draw(SpriteRenderer& srenderer, TextRenderer& renderer);
+	HighScores(const GLchar* file);
+	void Draw(const GLchar* file, SpriteRenderer& srenderer, TextRenderer& renderer);
 	GLuint LowestEntry();
 	void InsertNewScore(GLuint);
 private:
 	std::pair<std::string, GLuint> ScoreList[9];
+	const GLchar* File;
 };
 #endif
