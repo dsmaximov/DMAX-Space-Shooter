@@ -4,6 +4,7 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <GLFW/glfw3.h>
 #include <tuple>
 #include <string>
 
@@ -18,12 +19,19 @@
 class HighScores
 {
 public:
-	HighScores(const GLchar* file);
-	void Draw(const GLchar* file, SpriteRenderer& srenderer, TextRenderer& renderer);
+	HighScores(const GLchar* file, SpriteRenderer& srenderer, TextRenderer& trenderer);
+	void Draw(const GLchar* file, SpriteRenderer& srenderer, TextRenderer& renderer); //TODO remove file, srenderer, trenderer
 	GLuint LowestEntry();
 	void InsertNewScore(GLuint);
+	std::string AddInitials(GLint &keycode, int &keyaction);
 private:
 	std::pair<std::string, GLuint> ScoreList[9];
 	const GLchar* File;
+	SpriteRenderer& Srenderer;
+	TextRenderer& Trenderer;
+	GLuint ScoreListSize;
+	std::string Initials[3] = {"","",""};
+	bool ButtonPressed = false;
+	int InitialNumber = 0;
 };
 #endif

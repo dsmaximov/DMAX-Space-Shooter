@@ -16,7 +16,7 @@
 
 
 // GLFW function declerations
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void key_callback(GLFWwindow* window, GLint key, int scancode, int action, int mode);
 
 // The Width of the screen
 const GLuint SCREEN_WIDTH = 800;
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+void key_callback(GLFWwindow* window, GLint key, int scancode, int action, int mode)
 {
     // When a user presses the escape key, we set the WindowShouldClose property to true, closing the application
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -106,7 +106,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         {
             Breakout.Keys[key] = GL_FALSE;
             Breakout.KeysProcessed[key] = GL_FALSE;
-
         }
     }
+    Breakout.KeyCode = key;
+    Breakout.KeyAction = action;
 }

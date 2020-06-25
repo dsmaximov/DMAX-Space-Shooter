@@ -1,17 +1,7 @@
 #include "high_scores.h"
 #include <fstream>
 
-HighScores::HighScores(const GLchar* file) :File(file)
-{
-	for (size_t i = 0; i < 9; i++)
-	{
-		ScoreList[i].first = "AAA";
-		ScoreList[i].second = 0;
-	}
-}
-
-
-void HighScores::Draw(const GLchar* file, SpriteRenderer& srenderer, TextRenderer& trenderer) //TODO remove 'file', use 'File'
+HighScores::HighScores(const GLchar* file, SpriteRenderer& srenderer, TextRenderer& trenderer) :File(file), Srenderer(srenderer), Trenderer(trenderer) //Initials({"","",""})
 {
 	//load highscores.txt into ScoreList[]
 	std::ifstream infile(File);
@@ -19,12 +9,61 @@ void HighScores::Draw(const GLchar* file, SpriteRenderer& srenderer, TextRendere
 	{
 		infile >> ScoreList[it].first >> ScoreList[it].second;
 	}
+	ScoreListSize = sizeof(ScoreList) / sizeof(*ScoreList);
 
+}
+
+
+std::string HighScores::AddInitials(GLint& keycode, int& keyaction)
+{
+	Trenderer.RenderText("New High Score", 250.0f, 500.0f, 1.0f, glm::vec3(1.0f, .7f, .7f));
+	Trenderer.RenderText("Enter your initials", 250.0f, 550.0f, 1.0f, glm::vec3(.7f, .7f, 1.0f));
+	Trenderer.RenderText(std::string(1, keycode), 250.0f, 600.0f, 1.5f, glm::vec3(.7f, .7f, 1.0f));
+
+	//for (int i = 0; i < 3; )
+	//{
+	//	if (keyaction == GLFW_PRESS)
+	//	{
+	//		Initials[i] = std::string(1, keycode);
+	//		i++;
+	//	}
+	//}
+	//if (keyaction == GLFW_RELEASE) Initials[0] = std::string(1, keycode);
+	if (keyaction) ButtonPressed = true;
+	if (!keyaction && ButtonPressed && InitialNumber == 0)
+	{
+		Initials[InitialNumber] = std::string(1, keycode);
+		ButtonPressed = false;
+		InitialNumber++;
+	}
+	if (!keyaction && ButtonPressed && InitialNumber == 1)
+	{
+		Initials[InitialNumber] = std::string(1, keycode);
+		ButtonPressed = false;
+		InitialNumber++;
+	}
+	if (!keyaction && ButtonPressed && InitialNumber == 2)
+	{
+		Initials[InitialNumber] = std::string(1, keycode);
+		ButtonPressed = false;
+		InitialNumber++;
+	}
+	Trenderer.RenderText(Initials[0], 250.0f, 650.0f, 1.5f, glm::vec3(1.0f, .1f, .1f));
+	Trenderer.RenderText(Initials[1], 270.0f, 650.0f, 1.5f, glm::vec3(1.0f, .1f, .1f));
+	Trenderer.RenderText(Initials[2], 290.0f, 650.0f, 1.5f, glm::vec3(1.0f, .1f, .1f));
+	Trenderer.RenderText(std::to_string(keyaction), 250.0f, 700.0f, 1.5f, glm::vec3(1.0f, .1f, .1f));
+	Trenderer.RenderText(std::to_string(ButtonPressed), 250.0f, 750.0f, 1.5f, glm::vec3(1.0f, .1f, .1f));
+
+	return "XYZ";
+}
+
+void HighScores::Draw(const GLchar* file, SpriteRenderer& srenderer, TextRenderer& trenderer) //TODO remove 'file', use 'File'
+{
 	//render highscores
-	for (int it = 0; it < sizeof(ScoreList) / sizeof(*ScoreList); it++)
+	for (int it = 0; it < ScoreListSize; it++)
 	{
 		std::string dhs = "";
-		for (GLuint hs = ScoreList[it].second; hs < 999999999; hs = hs * 10)
+		for (GLuint hs = ScoreList[it].second + 1; hs < 999999999; hs = hs * 10) //adding leading zeroes for alignment
 		{
 			dhs = "0" + dhs;
 		}
@@ -35,13 +74,29 @@ void HighScores::Draw(const GLchar* file, SpriteRenderer& srenderer, TextRendere
 }
 GLuint HighScores::LowestEntry()
 {
-	return ScoreList[(sizeof(ScoreList) / sizeof(*ScoreList)) - 1].second; //return last member of ScoreList[]
+	return ScoreList[ScoreListSize - 1].second; //return last member of ScoreList[]
 }
-void HighScores::InsertNewScore(GLuint)
+void HighScores::InsertNewScore(GLuint new_high_score)
 {
-	std::ofstream outfile;
-	int i = 5;
-	outfile.open("res/high_scores/test.txt");
-	outfile << i;
-	outfile.close();
+	for (int it = 0; it < ScoreListSize; it++)
+	{
+		if (new_high_score > ScoreList[it].second)
+		{
+			for (int i = ScoreListSize - 1; i > it; i--)
+			{
+				ScoreList[i] = ScoreList[i - 1]; //move all highscores one position down in order to leave a position for the new highscore
+			}
+			ScoreList[it].first = "SHP";
+			ScoreList[it].second = new_high_score;
+			break;
+		}
+	}
+
+	// Write to the file
+	std::ofstream MyFile("res/high_scores/highscores.txt");
+	for (int i = 0; i < ScoreListSize; i++)
+	{
+		MyFile << ScoreList[i].first << " " << ScoreList[i].second << "\n";
+	}
+	MyFile.close();
 }

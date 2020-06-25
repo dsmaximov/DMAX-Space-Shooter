@@ -63,7 +63,7 @@ std::vector<PowerUp*>   PowerUps;
 int ActiveMenuButton;
 int NextPowerUp;
 Game::Game(GLuint width, GLuint height, GLuint scroll_speed)
-        : State(GAME_MENU), Keys(), KeysProcessed(), Width(width), Height(height), Level(0), Shields(10), Score(0), ScrollSpeed(scroll_speed)
+        : State(GAME_MENU), Keys(), KeysProcessed(), Width(width), Height(height), Level(0), Shields(3), Score(0), ScrollSpeed(scroll_speed), KeyCode(0)
 {
 
 }
@@ -148,9 +148,7 @@ void Game::Init()
     AllMenuButtons.push_back(ButtonHighScores);
     ButtonNew->Activate();
     // Load HighScores
-    HighScoresData = new HighScores("res/high_scores/highscores.txt");
-    //TODO delete ofstream test
-    HighScoresData->InsertNewScore(0);
+    HighScoresData = new HighScores("res/high_scores/highscores.txt", *Renderer, *Text);
     // Load levels
     GameLevel one;   one.Load  ("res/levels/one.lvl", this->Width, this->Height * 1.5);
     GameLevel two;   two.Load  ("res/levels/two.lvl", this->Width, this->Height * 1.5);
@@ -201,6 +199,12 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed)
             n->Move(dt, 800);
         }
         this->DoCollisions();
+
+        //Player dead
+        if (this->Shields == 0)
+        {
+            this->State = GAME_LOSE;
+        }
     }
     ParticlesEngineLeft->Update(dt, *Ship, 2, glm::vec2(0.25f * Ship->Size.x, Ship->Size.y));
     ParticlesEngineRight->Update(dt, *Ship, 2, glm::vec2(0.68f * Ship->Size.x, Ship->Size.y));
@@ -214,13 +218,13 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed)
         n->Deactivate();
     }
     AllMenuButtons[ActiveMenuButton]->Activate();
-    // Reduce shake time
-    if (ShakeTime > 0.0f)
-    {
-        ShakeTime -= dt;
-        if (ShakeTime <= 0.0f)
-            Effects->Shake = GL_FALSE;
-    }
+    //// Reduce shake time
+    //if (ShakeTime > 0.0f)
+    //{
+    //    ShakeTime -= dt;
+    //    if (ShakeTime <= 0.0f)
+    //        Effects->Shake = GL_FALSE;
+    //}
     // Check loss condition
     //if (Ball->Position.y >= this->Height) // Did ball reach bottom edge?
     //{
@@ -234,6 +238,7 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed)
     //    this->ResetPlayer();
     //}
     // Check win condition
+
     if (this->State == GAME_ACTIVE && this->Levels[this->Level].IsCompleted())
     {
         this->ResetLevel();
@@ -281,7 +286,7 @@ void Game::ProcessInput(GLfloat dt)
             if (ButtonHighScores->ButtonPressed) 
             {
                 this->State = GAME_HIGHSCORE;
-                ButtonNew->UnPress();
+                ButtonHighScores->UnPress();
             }
             this->KeysProcessed[GLFW_KEY_ENTER] = GL_TRUE;          
         }
@@ -295,6 +300,10 @@ void Game::ProcessInput(GLfloat dt)
             Effects->Chaos = GL_FALSE;
             this->State = GAME_MENU;
         }
+    }
+    if (this->State == GAME_ENTER_INITIALS)
+    {
+
     }
     if (this->State == GAME_ACTIVE)
     {
@@ -388,6 +397,10 @@ void Game::ProcessInput(GLfloat dt)
             this->KeysProcessed[GLFW_KEY_SPACE] = GL_TRUE;
         }
     }
+    //if (this->State == GAME_LOSE && this->Score > HighScoresData->LowestEntry())
+    //{
+
+    //}
 }
 
 void Game::Render()
@@ -443,6 +456,11 @@ void Game::Render()
         for (int i = 0; i < Shields; i++) Renderer->DrawSprite(ResourceManager::GetTexture("player_shields"), glm::vec2(295.0f + i * 45.0f, 10.0f), glm::vec2(40.0f, 10.0f));
         //TODO  remove std::stringstream ss1; ss1 << this->Shields;
         //      Text->RenderText("Shields:" + ss1.str(), 170.0f, 50.0f, 1.0f);
+    }
+    if (this->State == GAME_LOSE)
+    {
+        Text->RenderText("GAME OVER", 300.0f, this->Height / 2, 1.5f, glm::vec3(1.0f, 1.0f, .7f));
+        if (this->Score>HighScoresData->LowestEntry()) HighScoresData->AddInitials(KeyCode, KeyAction);
     }
     if (this->State == GAME_MENU)
     {
@@ -765,18 +783,14 @@ void Game::DoCollisions()
     {
         if (CheckCollisionShipEnemy(*Ship, *(*EnemyIterator)))
         {
+            Score += (*EnemyIterator)->ScorePoints;
             (*EnemyIterator)->Strenght = 0;
             if (Shields > 0)
             {
                 Shields--;
             }
-            else 
-            {
-                State = GAME_LOSE;
-            }
             ExplosionParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
                 *(*EnemyIterator), 2, (*EnemyIterator)->Size / 2.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), 0.7f));
-            Score += (*EnemyIterator)->ScorePoints;
             SoundEngine->play2D("res/audio/boom.wav", GL_FALSE);
         }
     }
@@ -793,10 +807,6 @@ void Game::DoCollisions()
                 SoundEngine->play2D("res/audio/shieldhit.wav", GL_FALSE); //if ship has shields
                 ShieldHitParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("shield_hit"), 500,
                     *(*EnemyShotIterator), 2, glm::vec2(0, 0), glm::vec4(0.0f, 0.5f, 1.0f, 1.0f), 0.4f));
-            }
-            else
-            {
-                State = GAME_LOSE;
             }
         }
     }

@@ -26,7 +26,8 @@ enum GameState {
     GAME_MENU,
     GAME_WIN,
     GAME_LOSE,
-    GAME_HIGHSCORE
+    GAME_HIGHSCORE,
+    GAME_ENTER_INITIALS
 };
 
 // Represents the four possible (collision) directions
@@ -60,6 +61,8 @@ public:
     GameState              State;
     GLboolean              Keys[1024];
     GLboolean              KeysProcessed[1024];
+    GLint                  KeyCode;
+    int                    KeyAction;
     GLuint                 Width , Height;
     std::vector<GameLevel> Levels;
     GLuint                 Level;
