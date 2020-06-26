@@ -459,7 +459,7 @@ void Game::Render()
     }
     if (this->State == GAME_LOSE)
     {
-        Text->RenderText("GAME OVER", 300.0f, this->Height / 2, 1.5f, glm::vec3(1.0f, 1.0f, .7f));
+        Text->RenderText("GAME OVER", this->Width/2 - 115, this->Height / 2 - 100, 1.5f, glm::vec3(1.0f, 1.0f, .7f));
         if (this->Score>HighScoresData->LowestEntry()) HighScoresData->AddInitials(KeyCode, KeyAction);
     }
     if (this->State == GAME_MENU)

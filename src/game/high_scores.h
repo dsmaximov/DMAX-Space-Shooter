@@ -24,6 +24,7 @@ public:
 	GLuint LowestEntry();
 	void InsertNewScore(GLuint);
 	std::string AddInitials(GLint &keycode, int &keyaction);
+	GLboolean NewHighScore;
 private:
 	std::pair<std::string, GLuint> ScoreList[9];
 	const GLchar* File;
@@ -31,7 +32,17 @@ private:
 	TextRenderer& Trenderer;
 	GLuint ScoreListSize;
 	std::string Initials[3] = {"","",""};
+	//button triggers
 	bool ButtonPressed = false;
-	int InitialNumber = 0;
+	bool ButtonReleased = false;
+	//enter initials state machine
+	bool InitialState = true; //press Enter to start
+	bool InitialStateComplete = false;
+	bool FirstLetter = false;
+	bool SecondLetter = false;
+	bool ThirdLetter = false;
+	bool AllLettersReady = false;
+	int LetterNumber = 0; //
+
 };
 #endif
