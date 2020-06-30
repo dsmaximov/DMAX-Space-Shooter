@@ -20,10 +20,10 @@ class HighScores
 {
 public:
 	HighScores(const GLchar* file, SpriteRenderer& srenderer, TextRenderer& trenderer);
-	void Draw(const GLchar* file, SpriteRenderer& srenderer, TextRenderer& renderer); //TODO remove file, srenderer, trenderer
+	void Draw(); 
 	GLuint LowestEntry();
-	void InsertNewScore(GLuint);
-	std::string AddInitials(GLint &keycode, int &keyaction);
+	void InsertNewScore(GLuint new_high_score);
+	std::string AddInitials(GLint &keycode, int &keyaction, GLuint new_high_score);
 	GLboolean NewHighScore;
 private:
 	std::pair<std::string, GLuint> ScoreList[9];

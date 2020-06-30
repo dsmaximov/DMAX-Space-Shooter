@@ -460,7 +460,7 @@ void Game::Render()
     if (this->State == GAME_LOSE)
     {
         Text->RenderText("GAME OVER", this->Width/2 - 115, this->Height / 2 - 100, 1.5f, glm::vec3(1.0f, 1.0f, .7f));
-        if (this->Score>HighScoresData->LowestEntry()) HighScoresData->AddInitials(KeyCode, KeyAction);
+        if (this->Score>HighScoresData->LowestEntry()) HighScoresData->AddInitials(KeyCode, KeyAction, this->Score);
     }
     if (this->State == GAME_MENU)
     {
@@ -488,7 +488,7 @@ void Game::Render()
     }
     if (this->State == GAME_HIGHSCORE)
     {
-        HighScoresData->Draw("res/high_scores/highscores.txt",*Renderer,*Text);
+        HighScoresData->Draw();
     }
     if (this->State == GAME_WIN)
     {
