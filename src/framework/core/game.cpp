@@ -178,12 +178,17 @@ void Game::Init()
     //Shot = new ShotObject(Ship->FiringPosition(), 6.0f, 1, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("face"));
     AllGameEnemies->Load("res/levels/two.lvl", this->Width, this->Height * 0.5);
     //GameEnemies Wave1; Wave1.Load("res/levels/two.lvl", this->Width, this->Height * 0.5);
-    // Audio
-    SoundEngine->play2D("res/audio/breakout.mp3", GL_TRUE);
     //Set particle engines
     ParticlesEngineLeft = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
     ParticlesEngineRight = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
+    Score = 0;
     NextPowerUp = 0;
+}
+void Game::ReInit()
+{
+    SoundEngine->stopAllSounds();
+    AllMenuButtons.clear();
+    this->Levels.clear();
 }
 void UpdateExplosionParticleEngines(std::vector <ParticleGeneratorExplosion*> explosionvector, GLfloat dt); //Explosion Particle engines update function
 void Game::Update(GLfloat dt, GLfloat scroll_speed)
@@ -251,6 +256,19 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed)
 
 void Game::ProcessInput(GLfloat dt)
 {
+    //Escape key exits to menu
+    if (this->State != GAME_MENU && this->Keys[GLFW_KEY_ESCAPE] && !this->KeysProcessed[GLFW_KEY_ESCAPE])
+    {
+        this->KeysProcessed[GLFW_KEY_ESCAPE] = GL_TRUE;
+        SoundEngine->setAllSoundsPaused(1);
+        if (this->State == GAME_ACTIVE)
+        {
+            ButtonContinue->ButtonAvailable = true;
+            ActiveMenuButton = BUTTON_CONTINUE;
+        }
+        this->State = GAME_MENU;
+
+    }
     if (this->State == GAME_MENU)
     {
 
@@ -277,12 +295,24 @@ void Game::ProcessInput(GLfloat dt)
         }
         if (this->Keys[GLFW_KEY_ENTER] && !this->KeysProcessed[GLFW_KEY_ENTER])
         {
-            AllMenuButtons[ActiveMenuButton]->Press();
-            if (ButtonNew->ButtonPressed) //start a new game
+            if (AllMenuButtons[ActiveMenuButton]->ButtonAvailable) AllMenuButtons[ActiveMenuButton]->Press();
+            //continue game
+            if (ButtonContinue->ButtonPressed)
             {
                 this->State = GAME_ACTIVE;
+                SoundEngine->setAllSoundsPaused(0);
+                ButtonContinue->UnPress();
+            }
+            //start a new game
+            if (ButtonNew->ButtonPressed)
+            {
+                this->State = GAME_ACTIVE;
+                this->ReInit();
+                this->Init();
+                SoundEngine->play2D("res/audio/breakout.mp3", GL_TRUE);
                 ButtonNew->UnPress();
             }
+            //highscores
             if (ButtonHighScores->ButtonPressed) 
             {
                 this->State = GAME_HIGHSCORE;

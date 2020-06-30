@@ -29,6 +29,14 @@ enum GameState {
     GAME_HIGHSCORE,
     GAME_ENTER_INITIALS
 };
+// Represents the menu buttons
+enum ActiveMenuButton {
+    BUTTON_CONTINUE,
+    BUTTON_NEW,
+    BUTTON_SAVE,
+    BUTTON_LOAD,
+    BUTTON_HIGH_SCORES
+};
 
 // Represents the four possible (collision) directions
 enum Direction {
@@ -76,6 +84,8 @@ public:
     ~Game();
     // Initialize game state (load all shaders/textures/levels)
     void Init();
+    //Reset initialization and prepare for new game
+    void ReInit(); 
     // GameLoop
     void ProcessInput(GLfloat dt);
     void Update(GLfloat dt, GLfloat scroll_speed);
