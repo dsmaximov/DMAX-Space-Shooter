@@ -45,7 +45,8 @@ ParticleGenerator * ParticlesEngineRight;
 ParticleGeneratorExplosion* ParticlesEngineExpl;
 ParticleGeneratorExplosion* ParticlesEngineShieldHit;
 PostProcessor     * Effects;
-ISoundEngine      * SoundEngine = createIrrKlangDevice();
+ISoundEngine      * SoundEngineGame = createIrrKlangDevice();
+ISoundEngine      * SoundEngineMenu = createIrrKlangDevice();
 GLfloat             ShakeTime = 0.0f;
 TextRenderer      * Text;
 GameShots         * AllPlayerShots;
@@ -57,13 +58,15 @@ MenuButton* ButtonNew;
 MenuButton* ButtonSave;
 MenuButton* ButtonLoad;
 MenuButton* ButtonHighScores;
+MenuButton* ButtonHelp;
+MenuButton* ButtonCredits;
 HighScores* HighScoresData;
 std::vector <MenuButton*> AllMenuButtons;
 std::vector<PowerUp*>   PowerUps;
 int ActiveMenuButton;
 int NextPowerUp;
 Game::Game(GLuint width, GLuint height, GLuint scroll_speed)
-        : State(GAME_MENU), Keys(), KeysProcessed(), Width(width), Height(height), Level(0), Shields(3), Score(0), ScrollSpeed(scroll_speed), KeyCode(0)
+        : State(GAME_MAIN_MENU), Keys(), KeysProcessed(), Width(width), Height(height), Level(0), ScrollSpeed(scroll_speed), KeyCode(0)
 {
 
 }
@@ -78,7 +81,7 @@ Game::~Game()
     delete Text;
     delete ParticlesEngineLeft;
     delete ParticlesEngineRight;
-    SoundEngine->drop();
+    SoundEngineGame->drop();
 }
 
 void Game::Init()
@@ -141,11 +144,15 @@ void Game::Init()
     ButtonSave = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "Save");
     ButtonLoad = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "Load");
     ButtonHighScores = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "High Scores");
+    ButtonHelp = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "Help");
+    ButtonCredits = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "Credits");
     AllMenuButtons.push_back(ButtonContinue);
     AllMenuButtons.push_back(ButtonNew);
     AllMenuButtons.push_back(ButtonSave);
     AllMenuButtons.push_back(ButtonLoad);
     AllMenuButtons.push_back(ButtonHighScores);
+    AllMenuButtons.push_back(ButtonHelp);
+    AllMenuButtons.push_back(ButtonCredits);
     ButtonNew->Activate();
     // Load HighScores
     HighScoresData = new HighScores("res/high_scores/highscores.txt", *Renderer, *Text);
@@ -163,6 +170,7 @@ void Game::Init()
     // Configure menu buttons
     ButtonNew->ButtonAvailable = true;
     ButtonHighScores->ButtonAvailable = true;
+    ButtonHelp->ButtonAvailable = true;
     // Set active menu button
     ActiveMenuButton = 1;
     // Configure game objects
@@ -181,14 +189,17 @@ void Game::Init()
     //Set particle engines
     ParticlesEngineLeft = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
     ParticlesEngineRight = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
-    Score = 0;
-    NextPowerUp = 0;
+    this->Score = 0;
+    this->Shields = 3;
+    NextPowerUp = 1;
+    SoundEngineMenu->play2D("res/audio/Urban-Future.mp3", GL_TRUE);
 }
 void Game::ReInit()
 {
-    SoundEngine->stopAllSounds();
+    SoundEngineGame->stopAllSounds();
     AllMenuButtons.clear();
     this->Levels.clear();
+    PowerUps.clear();
 }
 void UpdateExplosionParticleEngines(std::vector <ParticleGeneratorExplosion*> explosionvector, GLfloat dt); //Explosion Particle engines update function
 void Game::Update(GLfloat dt, GLfloat scroll_speed)
@@ -206,9 +217,13 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed)
         this->DoCollisions();
 
         //Player dead
-        if (this->Shields == 0)
+        if (this->Shields == 0 && this->Score <= HighScoresData->LowestEntry())
         {
             this->State = GAME_LOSE;
+        }
+        if (this->Shields == 0 && this->Score > HighScoresData->LowestEntry())
+        {
+            this->State = GAME_ENTER_INITIALS;
         }
     }
     ParticlesEngineLeft->Update(dt, *Ship, 2, glm::vec2(0.25f * Ship->Size.x, Ship->Size.y));
@@ -257,19 +272,27 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed)
 void Game::ProcessInput(GLfloat dt)
 {
     //Escape key exits to menu
-    if (this->State != GAME_MENU && this->Keys[GLFW_KEY_ESCAPE] && !this->KeysProcessed[GLFW_KEY_ESCAPE])
+    if (this->State != GAME_MAIN_MENU && this->Keys[GLFW_KEY_ESCAPE] && !this->KeysProcessed[GLFW_KEY_ESCAPE])
     {
         this->KeysProcessed[GLFW_KEY_ESCAPE] = GL_TRUE;
-        SoundEngine->setAllSoundsPaused(1);
         if (this->State == GAME_ACTIVE)
         {
             ButtonContinue->ButtonAvailable = true;
             ActiveMenuButton = BUTTON_CONTINUE;
+            SoundEngineGame->setAllSoundsPaused(1);
+            SoundEngineMenu->stopAllSounds();
+            SoundEngineMenu->play2D("res/audio/Urban-Future.mp3", GL_TRUE);
         }
-        this->State = GAME_MENU;
+        if (this->State == GAME_ENTER_INITIALS || this->State == GAME_LOSE)
+        {
+            SoundEngineGame->stopAllSounds();
+            SoundEngineMenu->stopAllSounds();
+            SoundEngineMenu->play2D("res/audio/Urban-Future.mp3", GL_TRUE);
+        }
+        this->State = GAME_MAIN_MENU;
 
     }
-    if (this->State == GAME_MENU)
+    if (this->State == GAME_MAIN_MENU)
     {
 
         if ((this->Keys[GLFW_KEY_W] && !this->KeysProcessed[GLFW_KEY_W]) ||
@@ -286,7 +309,7 @@ void Game::ProcessInput(GLfloat dt)
         if ((this->Keys[GLFW_KEY_S] && !this->KeysProcessed[GLFW_KEY_S]) ||
            (this->Keys[GLFW_KEY_DOWN] && !this->KeysProcessed[GLFW_KEY_DOWN]))
         {
-            if (!(ActiveMenuButton >3))
+            if (!(ActiveMenuButton >= AllMenuButtons.size() - 1))
             {
                 ActiveMenuButton++;
             }
@@ -300,7 +323,8 @@ void Game::ProcessInput(GLfloat dt)
             if (ButtonContinue->ButtonPressed)
             {
                 this->State = GAME_ACTIVE;
-                SoundEngine->setAllSoundsPaused(0);
+                SoundEngineMenu->stopAllSounds();
+                SoundEngineGame->setAllSoundsPaused(0);
                 ButtonContinue->UnPress();
             }
             //start a new game
@@ -309,14 +333,20 @@ void Game::ProcessInput(GLfloat dt)
                 this->State = GAME_ACTIVE;
                 this->ReInit();
                 this->Init();
-                SoundEngine->play2D("res/audio/breakout.mp3", GL_TRUE);
+                SoundEngineMenu->stopAllSounds();
+                SoundEngineGame->play2D("res/audio/Background DMAX.mp3", GL_TRUE);
                 ButtonNew->UnPress();
             }
             //highscores
             if (ButtonHighScores->ButtonPressed) 
             {
-                this->State = GAME_HIGHSCORE;
+                this->State = GAME_HIGHSCORE_MENU;
                 ButtonHighScores->UnPress();
+            }
+            if (ButtonHelp->ButtonPressed)
+            {
+                this->State = GAME_HELP;
+                ButtonHelp->UnPress();
             }
             this->KeysProcessed[GLFW_KEY_ENTER] = GL_TRUE;          
         }
@@ -328,7 +358,7 @@ void Game::ProcessInput(GLfloat dt)
         {
             this->KeysProcessed[GLFW_KEY_ENTER] = GL_TRUE;
             Effects->Chaos = GL_FALSE;
-            this->State = GAME_MENU;
+            this->State = GAME_MAIN_MENU;
         }
     }
     if (this->State == GAME_ENTER_INITIALS)
@@ -423,7 +453,7 @@ void Game::ProcessInput(GLfloat dt)
                         BALL_RADIUS, 1, glm::vec2(-INITIAL_BALL_VELOCITY.y * 0.5f, INITIAL_BALL_VELOCITY.y * 0.7f), ResourceManager::GetTexture("ship_shot1R"));
                 }
             }
-            SoundEngine->play2D("res/audio/laser.wav", GL_FALSE);
+            SoundEngineGame->play2D("res/audio/laser.wav", GL_FALSE);
             this->KeysProcessed[GLFW_KEY_SPACE] = GL_TRUE;
         }
     }
@@ -435,7 +465,7 @@ void Game::ProcessInput(GLfloat dt)
 
 void Game::Render()
 {
-    if (this->State == GAME_ACTIVE || State == GAME_LOSE)//|| this->State == GAME_MENU || this->State == GAME_WIN)
+    if (this->State == GAME_ACTIVE || this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS)//|| this->State == GAME_MENU || this->State == GAME_WIN)
     {
         // Begin rendering to postprocessing quad
         Effects->BeginRender();
@@ -490,35 +520,52 @@ void Game::Render()
     if (this->State == GAME_LOSE)
     {
         Text->RenderText("GAME OVER", this->Width/2 - 115, this->Height / 2 - 100, 1.5f, glm::vec3(1.0f, 1.0f, .7f));
-        if (this->Score>HighScoresData->LowestEntry()) HighScoresData->AddInitials(KeyCode, KeyAction, this->Score);
     }
-    if (this->State == GAME_MENU)
+    if (this->State == GAME_ENTER_INITIALS)
+    {
+        Text->RenderText("GAME OVER", this->Width / 2 - 115, this->Height / 2 - 100, 1.5f, glm::vec3(1.0f, 1.0f, .7f));
+        HighScoresData->AddInitials(KeyCode, KeyAction, this->Score);
+    }
+    if (this->State == GAME_MAIN_MENU)
     {
         const glm::vec2 MenuPositions[] = {
         glm::vec2(270.0f, 300.0f),
         glm::vec2(270.0f, 350.0f),
         glm::vec2(270.0f, 400.0f),
         glm::vec2(270.0f, 450.0f),
-        glm::vec2(270.0f, 500.0f)
+        glm::vec2(270.0f, 500.0f),
+        glm::vec2(270.0f, 550.0f),
+        glm::vec2(270.0f, 600.0f)
         };
         const glm::vec2 ButtonSize = glm::vec2(260.0f, 50.0f);
-
-        //Renderer->DrawSprite(ResourceManager::GetTexture("enemy1"), glm::vec2(this->Width / 2, this->Height / 2 + 40.0f));
-        //Text->RenderText("Press ENTER to start", 250.0f, this->Height / 2, 1.0f);
-        //Text->RenderText("Press W or S to select level", 245.0f, this->Height / 2 + 20.0f, 0.75f);
-        //ButtonContinue->Draw(*Renderer, *Text, MenuPositions[0], ButtonSize);
-        //ButtonNew->ButtonActive = true;
-        //ButtonNew->ButtonAvailable = true;
-
         for (auto it=AllMenuButtons.begin(); it!=AllMenuButtons.end();it++)
         {
             int index = it - AllMenuButtons.begin();
             (*it)->Draw(*Renderer, *Text, MenuPositions[index], ButtonSize);
         }
     }
-    if (this->State == GAME_HIGHSCORE)
+    if (this->State == GAME_HIGHSCORE_MENU)
     {
         HighScoresData->Draw();
+    }
+    if (this->State == GAME_HELP)
+    {
+        Text->RenderText("GAME CONTROLS", this->Width / 2 - 115, this->Height / 2 - 320, 1.0f, glm::vec3(.3f, .9f, .7f));
+        Text->RenderText("A / LEFT ARROW  :", this->Width / 2 - 210, this->Height / 2 - 220, 1.0f, glm::vec3(.8f, .8f, .7f));
+        Text->RenderText("LEFT", this->Width / 2 + 60 , this->Height / 2 - 220, 1.0f, glm::vec3(.9f, .3f, .4f));
+        Text->RenderText("D / RIGHT ARROW :", this->Width / 2 - 210, this->Height / 2 - 170, 1.0f, glm::vec3(.8f, .8f, .7f));
+        Text->RenderText("RIGHT", this->Width / 2 + 60, this->Height / 2 - 170, 1.0f, glm::vec3(.9f, .3f, .4f));
+        Text->RenderText("W / UP ARROW    :", this->Width / 2 - 210, this->Height / 2 - 120, 1.0f, glm::vec3(.8f, .8f, .7f));
+        Text->RenderText("UP", this->Width / 2 + 60, this->Height / 2 - 120, 1.0f, glm::vec3(.9f, .3f, .4f));
+        Text->RenderText("S / DOWN ARROW  :", this->Width / 2 - 210, this->Height / 2 - 70, 1.0f, glm::vec3(.8f, .8f, .7f));
+        Text->RenderText("DOWN", this->Width / 2 + 60, this->Height / 2 - 70, 1.0f, glm::vec3(.9f, .3f, .4f));
+        Text->RenderText("SPACE BAR       :", this->Width / 2 - 210, this->Height / 2 - 20, 1.0f, glm::vec3(.8f, .8f, .7f));
+        Text->RenderText("FIRE", this->Width / 2 + 60, this->Height / 2 - 20, 1.0f, glm::vec3(.9f, .3f, .4f));
+        Text->RenderText("ESCAPE          :", this->Width / 2 - 210, this->Height / 2 + 30, 1.0f, glm::vec3(.8f, .8f, .7f));
+        Text->RenderText("EXIT", this->Width / 2 + 60, this->Height / 2 + 30, 1.0f, glm::vec3(.9f, .3f, .4f));
+        Text->RenderText("ENTER           :", this->Width / 2 - 210, this->Height / 2 + 80, 1.0f, glm::vec3(.8f, .8f, .7f));
+        Text->RenderText("ENTER MENU", this->Width / 2 + 60, this->Height / 2 + 80, 1.0f, glm::vec3(.9f, .3f, .4f));
+
     }
     if (this->State == GAME_WIN)
     {
@@ -767,7 +814,7 @@ void Game::DoCollisions()
                 (*EnemyIterator)->Strenght -= temp;
                 if ((*EnemyIterator)->Strenght > 0)
                 {
-                    SoundEngine->play2D("res/audio/shieldhit.wav", GL_FALSE); //if enemy has shields
+                    SoundEngineGame->play2D("res/audio/shieldhit.wav", GL_FALSE); //if enemy has shields
                     ShieldHitParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("shield_hit"), 500,
                         *(*ShotIterator), 2, glm::vec2(0, 0), glm::vec4(0.0f, 0.5f, 1.0f, 1.0f), 0.4f));
 
@@ -806,7 +853,7 @@ void Game::DoCollisions()
         }
         AllPlayerShots->Clean();
     }
-    if (AllGameEnemies->Clean()) SoundEngine->play2D("res/audio/boom.wav", GL_FALSE);
+    if (AllGameEnemies->Clean()) SoundEngineGame->play2D("res/audio/boom.wav", GL_FALSE);
 
     //Collisions between player and enemies
     for (auto EnemyIterator = AllGameEnemies->Enemies.begin(); EnemyIterator != AllGameEnemies->Enemies.end(); EnemyIterator++)
@@ -821,7 +868,7 @@ void Game::DoCollisions()
             }
             ExplosionParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
                 *(*EnemyIterator), 2, (*EnemyIterator)->Size / 2.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), 0.7f));
-            SoundEngine->play2D("res/audio/boom.wav", GL_FALSE);
+            SoundEngineGame->play2D("res/audio/boom.wav", GL_FALSE);
         }
     }
 
@@ -834,7 +881,7 @@ void Game::DoCollisions()
             {
                 Shields--;
                 (*EnemyShotIterator)->Power = 0;
-                SoundEngine->play2D("res/audio/shieldhit.wav", GL_FALSE); //if ship has shields
+                SoundEngineGame->play2D("res/audio/shieldhit.wav", GL_FALSE); //if ship has shields
                 ShieldHitParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("shield_hit"), 500,
                     *(*EnemyShotIterator), 2, glm::vec2(0, 0), glm::vec4(0.0f, 0.5f, 1.0f, 1.0f), 0.4f));
             }
@@ -863,7 +910,7 @@ void Game::DoCollisions()
             }
             PowerUps.erase(PowerUpIterator);
             PowerUpIterator = PowerUps.end();
-            SoundEngine->play2D("res/audio/power_up.ogg", GL_FALSE);
+            SoundEngineGame->play2D("res/audio/power_up.ogg", GL_FALSE);
         }
         else { PowerUpIterator++; }
     }

@@ -23,19 +23,24 @@
 // Represents the current state of the game
 enum GameState {
     GAME_ACTIVE,
-    GAME_MENU,
+    GAME_MAIN_MENU,
     GAME_WIN,
     GAME_LOSE,
-    GAME_HIGHSCORE,
-    GAME_ENTER_INITIALS
+    GAME_HIGHSCORE_MENU,
+    GAME_ENTER_INITIALS,
+    GAME_HELP,
+    GAME_CREDITS
 };
+
 // Represents the menu buttons
 enum ActiveMenuButton {
     BUTTON_CONTINUE,
     BUTTON_NEW,
     BUTTON_SAVE,
     BUTTON_LOAD,
-    BUTTON_HIGH_SCORES
+    BUTTON_HIGH_SCORES,
+    BUTTON_HELP,
+    BUTTON_CREDITS
 };
 
 // Represents the four possible (collision) directions

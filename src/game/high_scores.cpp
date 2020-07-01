@@ -18,7 +18,7 @@ std::string HighScores::AddInitials(GLint& keycode, int& keyaction, GLuint new_h
 	if (InitialStateComplete && LetterNumber == 0) { FirstLetter = true; }
 	if (InitialStateComplete && LetterNumber == 1) { SecondLetter = true; }
 	if (InitialStateComplete && LetterNumber == 2) { ThirdLetter = true; }
-	if (InitialStateComplete && LetterNumber > 2) { AllLettersReady = true; }
+	if (InitialStateComplete && LetterNumber == 3) { AllLettersReady = true; }
 
 	if (!keyaction) ButtonReleased = true;
 	if (keyaction) ButtonPressed = true;
@@ -32,7 +32,7 @@ std::string HighScores::AddInitials(GLint& keycode, int& keyaction, GLuint new_h
 		Trenderer.RenderText("1st initial", 303.0f, 450.0f, 1.0f, glm::vec3(.7f, .7f, 1.0f));
 		if (!keyaction && ButtonPressed && ButtonReleased && keycode >= 65 && keycode <= 90)
 		{
-			Initials[LetterNumber] = std::string(1, keycode);
+			Initials[0] = std::string(1, keycode);
 			LetterNumber++;
 			FirstLetter = false;
 			ButtonPressed = false;
@@ -44,7 +44,7 @@ std::string HighScores::AddInitials(GLint& keycode, int& keyaction, GLuint new_h
 		Trenderer.RenderText("2nd initial", 303.0f, 450.0f, 1.0f, glm::vec3(.7f, .7f, 1.0f));
 		if (!keyaction && ButtonPressed && ButtonReleased && keycode >= 65 && keycode <= 90)
 		{
-			Initials[LetterNumber] = std::string(1, keycode);
+			Initials[1] = std::string(1, keycode);
 			LetterNumber++;
 			SecondLetter = false;
 			ButtonPressed = false;
@@ -56,7 +56,7 @@ std::string HighScores::AddInitials(GLint& keycode, int& keyaction, GLuint new_h
 		Trenderer.RenderText("3rd initial", 303.0f, 450.0f, 1.0f, glm::vec3(.7f, .7f, 1.0f));
 		if (!keyaction && ButtonPressed && ButtonReleased && keycode >= 65 && keycode <= 90)
 		{
-			Initials[LetterNumber] = std::string(1, keycode);
+			Initials[2] = std::string(1, keycode);
 			LetterNumber++;
 			ThirdLetter = false;
 			ButtonPressed = false;
@@ -86,20 +86,23 @@ std::string HighScores::AddInitials(GLint& keycode, int& keyaction, GLuint new_h
 	return "XYZ";
 }
 
-void HighScores::Draw() //TODO remove 'file', use 'File'
+void HighScores::Draw()
 {
 	//render highscores
 	for (int it = 0; it < ScoreListSize; it++)
 	{
-		std::string dhs = "";
-		for (GLuint hs = ScoreList[it].second + 1; hs < 999999999; hs = hs * 10) //adding leading zeroes for alignment
+		std::string dhs = std::to_string(ScoreList[it].second);
+		while (dhs.length() < 9) //adding leading zeroes for alignment
 		{
 			dhs = "0" + dhs;
 		}
-		dhs = dhs + std::to_string(ScoreList[it].second);
-		Trenderer.RenderText(ScoreList[it].first, 250.0f, 150.0f + it * 50, 1.0f, glm::vec3(.7f, .7f, 1.0f));
-		Trenderer.RenderText(dhs, 400.0f, 150.0f + it * 50, 1.0f, glm::vec3(.7f, 1.0f, .7f));
+		if (ScoreList[it].second > 0)
+		{
+			Trenderer.RenderText(ScoreList[it].first, 250.0f, 150.0f + it * 50, 1.0f, glm::vec3(.7f, .7f, 1.0f));
+			Trenderer.RenderText(dhs, 380.0f, 150.0f + it * 50, 1.0f, glm::vec3(.7f, 1.0f, .7f));
+		}
 	}
+	Trenderer.RenderText("High Scores", 310.0f, 80.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
 }
 GLuint HighScores::LowestEntry()
 {
@@ -125,7 +128,7 @@ void HighScores::InsertNewScore(GLuint new_high_score)
 	std::ofstream MyFile(File);
 	for (int i = 0; i < ScoreListSize; i++)
 	{
-		MyFile << ScoreList[i].first << " " << ScoreList[i].second << "\n";
+		if (ScoreList[i].second>0) MyFile << ScoreList[i].first << " " << ScoreList[i].second << "\n";
 	}
 	MyFile.close();
 }
