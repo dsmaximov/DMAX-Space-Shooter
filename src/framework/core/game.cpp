@@ -171,6 +171,7 @@ void Game::Init()
     ButtonNew->ButtonAvailable = true;
     ButtonHighScores->ButtonAvailable = true;
     ButtonHelp->ButtonAvailable = true;
+    ButtonCredits->ButtonAvailable = true;
     // Set active menu button
     ActiveMenuButton = 1;
     // Configure game objects
@@ -343,10 +344,17 @@ void Game::ProcessInput(GLfloat dt)
                 this->State = GAME_HIGHSCORE_MENU;
                 ButtonHighScores->UnPress();
             }
+            //help (controls)
             if (ButtonHelp->ButtonPressed)
             {
                 this->State = GAME_HELP;
                 ButtonHelp->UnPress();
+            }
+            //credits
+            if (ButtonCredits->ButtonPressed)
+            {
+                this->State = GAME_CREDITS;
+                ButtonCredits->UnPress();
             }
             this->KeysProcessed[GLFW_KEY_ENTER] = GL_TRUE;          
         }
@@ -566,6 +574,19 @@ void Game::Render()
         Text->RenderText("ENTER           :", this->Width / 2 - 210, this->Height / 2 + 80, 1.0f, glm::vec3(.8f, .8f, .7f));
         Text->RenderText("ENTER MENU", this->Width / 2 + 60, this->Height / 2 + 80, 1.0f, glm::vec3(.9f, .3f, .4f));
 
+    }
+    if (this->State == GAME_CREDITS)
+    {
+        Text->RenderText("CREDITS", this->Width / 2 - 90, this->Height / 2 - 320, 1.0f, glm::vec3(.3f, .9f, .7f));
+        Text->RenderText("GRAPHICS", this->Width / 2 - 92, this->Height / 2 - 250, .9f, glm::vec3(.9f, .9f, .3f));
+        Text->RenderText("Enemy ship design: www.clipartmax.com", this->Width / 2 - 300, this->Height / 2 - 210, .7f, glm::vec3(.9f, .9f, .3f));
+        Text->RenderText("Background, shots, powerups, explosions: me :)", this->Width / 2 - 300, this->Height / 2 - 190, .7f, glm::vec3(.9f, .9f, .3f));
+        Text->RenderText("SOUNDS/MUSIC", this->Width / 2 - 112, this->Height / 2 - 140, .9f, glm::vec3(.9f, .9f, .3f));
+        Text->RenderText("Menu Music: URBAN FUTURE by Eric Matyas www.soundimage.org", this->Width / 2 - 300, this->Height / 2 - 100, .7f, glm::vec3(.9f, .9f, .3f));
+        Text->RenderText("Game Music: Fesliyan Studios www.fesliyanstudios.com", this->Width / 2 - 300, this->Height / 2 - 80, .7f, glm::vec3(.9f, .9f, .3f));
+        Text->RenderText("Sound effects: www.freesound.org", this->Width / 2 - 300, this->Height / 2 - 60, .7f, glm::vec3(.9f, .9f, .3f));
+        
+        
     }
     if (this->State == GAME_WIN)
     {

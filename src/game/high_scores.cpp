@@ -98,11 +98,11 @@ void HighScores::Draw()
 		}
 		if (ScoreList[it].second > 0)
 		{
-			Trenderer.RenderText(ScoreList[it].first, 250.0f, 150.0f + it * 50, 1.0f, glm::vec3(.7f, .7f, 1.0f));
-			Trenderer.RenderText(dhs, 380.0f, 150.0f + it * 50, 1.0f, glm::vec3(.7f, 1.0f, .7f));
+			Trenderer.RenderText(ScoreList[it].first, 270.0f, 150.0f + it * 50, 1.0f, glm::vec3(.7f, .7f, 1.0f));
+			Trenderer.RenderText(dhs, 400.0f, 150.0f + it * 50, 1.0f, glm::vec3(.7f, 1.0f, .7f));
 		}
 	}
-	Trenderer.RenderText("High Scores", 310.0f, 80.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
+	Trenderer.RenderText("HIGH SCORES", 310.0f, 80.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
 }
 GLuint HighScores::LowestEntry()
 {

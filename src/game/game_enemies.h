@@ -48,7 +48,7 @@ private:
     glm::vec2 * ShipPosition;
 
     //Enemy 1
-    GLfloat       ENEMYRADIUS1 = 40.0f;
+    GLfloat       ENEMYRADIUS1 = 35.0f;
     glm::vec2     ENEMYVELOCITY1 = glm::vec2 (0.0f, 100.0f);
     Texture2D*          ENEMYTEXTURE1 = ResourceManager::GetTexture("enemy1");
     GLint         ENEMYSTRENGHT1 = 2;
@@ -57,7 +57,7 @@ private:
     GLfloat       SHOTRADIUS1 = 5.0f;
     glm::vec2     SHOTVELOCITY1 = glm::vec2(0.0f, 200.0f);
     //Enemy 2
-    GLfloat       ENEMYRADIUS2 = 40.0f;
+    GLfloat       ENEMYRADIUS2 = 35.0f;
     glm::vec2     ENEMYVELOCITY2 = glm::vec2(0.0f, 100.0f);
     Texture2D*          ENEMYTEXTURE2 = ResourceManager::GetTexture("enemy2");
     GLint         ENEMYSTRENGHT2 = 10;
@@ -66,7 +66,7 @@ private:
     GLfloat       SHOTRADIUS2 = 5.0f;
     glm::vec2     SHOTVELOCITY2 = glm::vec2(0.0f, 300.0f);
     //Enemy 3
-    GLfloat       ENEMYRADIUS3 = 40.0f;
+    GLfloat       ENEMYRADIUS3 = 35.0f;
     glm::vec2     ENEMYVELOCITY3 = glm::vec2(0.0f, 100.0f);
     Texture2D*          ENEMYTEXTURE3 = ResourceManager::GetTexture("enemy3");
     GLint         ENEMYSTRENGHT3 = 7;
@@ -75,16 +75,16 @@ private:
     GLfloat       SHOTRADIUS3 = 7.0f;
     glm::vec2     SHOTVELOCITY3 = glm::vec2(0.0f, 200.0f);
     //Enemy 4
-    GLfloat       ENEMYRADIUS4 = 40.0f;
+    GLfloat       ENEMYRADIUS4 = 35.0f;
     glm::vec2     ENEMYVELOCITY4 = glm::vec2(0.0f, 100.0f);
     Texture2D*       ENEMYTEXTURE4 = ResourceManager::GetTexture("enemy4");
-    GLint         ENEMYSTRENGHT4 = 7;
+    GLint         ENEMYSTRENGHT4 = 6;
     GLint         SCOREPOINTS4 = 20;
     GLint         NUMBEROFSHOTS4 = 2;
     GLfloat       SHOTRADIUS4 = 5.0f;
     glm::vec2     SHOTVELOCITY4 = glm::vec2(0.0f, 200.0f);
     //Enemy 5
-    GLfloat       ENEMYRADIUS5 = 40.0f;
+    GLfloat       ENEMYRADIUS5 = 45.0f;
     glm::vec2     ENEMYVELOCITY5 = glm::vec2(0.0f, 100.0f);
     Texture2D*       ENEMYTEXTURE5 = ResourceManager::GetTexture("enemy5");
     GLint         ENEMYSTRENGHT5 = 5;
