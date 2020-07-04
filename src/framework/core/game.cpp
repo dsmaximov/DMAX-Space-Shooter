@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <sstream>
 #include <vector>
+#include <cmath>
 #include <GLFW/glfw3.h>
 
 #include <irrKlang.h>
@@ -201,6 +202,7 @@ void Game::ReInit()
     AllMenuButtons.clear();
     this->Levels.clear();
     PowerUps.clear();
+    NextPowerUp = 1;
 }
 void UpdateExplosionParticleEngines(std::vector <ParticleGeneratorExplosion*> explosionvector, GLfloat dt); //Explosion Particle engines update function
 void Game::Update(GLfloat dt, GLfloat scroll_speed)
@@ -840,7 +842,7 @@ void Game::DoCollisions()
                         *(*ShotIterator), 2, glm::vec2(0, 0), glm::vec4(0.0f, 0.5f, 1.0f, 1.0f), 0.4f));
 
                 }
-                else
+                if ((*EnemyIterator)->Strenght == 0)
                 {
                     ExplosionParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
                         *(*EnemyIterator), 2, (*EnemyIterator)->Size / 2.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), 0.7f));
@@ -956,28 +958,27 @@ GLboolean CheckCollisionShotEnemy(ShotObject& shot, EnemyObject& enemy) // AABB 
 
 GLboolean CheckCollisionShipEnemy(ShipObject& ship, EnemyObject& enemy) // AABB - AABB collision
 {
-    // Collision x-axis?
-    bool collisionX = ship.Position.x + ship.Size.x >= enemy.Position.x &&
-        enemy.Position.x + enemy.Size.x >= ship.Position.x;
-    // Collision y-axis?
-    bool collisionY = ship.Position.y + ship.Size.y >= enemy.Position.y &&
-        enemy.Position.y + enemy.Size.y >= ship.Position.y;
-    // Collision only if on both axes
-    GLboolean a = collisionX && collisionY;
-    return a;// collisionX&& collisionY;
+    GLfloat r1 = ship.Radius;
+    GLfloat r2 = enemy.Radius;
+    GLfloat x1 = ship.Position.x + r1; // x coordinate of ship centre
+    GLfloat y1 = ship.Position.y + r1; // y coordinate of ship centre
+    GLfloat x2 = enemy.Position.x + r2; // x coordinate of shot centre
+    GLfloat y2 = enemy.Position.y + r2; // y coordinate of shot centre
+    GLfloat d = std::sqrt(std::pow(x2 - x1, 2.0f) + std::pow(y2 - y1, 2.0f)); //distance between ship centre and shot centre (Pythagoreas)
+    return (d < r1 + r2);
 }
 
 GLboolean CheckCollisionShipShot(ShipObject& ship, ShotObject& shot) // AABB - AABB collision
 {
     // Collision x-axis?
-    bool collisionX = ship.Position.x + ship.Size.x >= shot.Position.x &&
-        shot.Position.x + shot.Size.x >= ship.Position.x;
-    // Collision y-axis?
-    bool collisionY = ship.Position.y + ship.Size.y >= shot.Position.y &&
-        shot.Position.y + shot.Size.y >= ship.Position.y;
-    // Collision only if on both axes
-    GLboolean a = collisionX && collisionY;
-    return a;// collisionX&& collisionY;
+    GLfloat r1 = ship.Radius;
+    GLfloat r2 = shot.Radius;
+    GLfloat x1 = ship.Position.x + r1; // x coordinate of ship centre
+    GLfloat y1 = ship.Position.y + r1; // y coordinate of ship centre
+    GLfloat x2 = shot.Position.x + r2; // x coordinate of shot centre
+    GLfloat y2 = shot.Position.y + r2; // y coordinate of shot centre
+    GLfloat d = std::sqrt(std::pow(x2 - x1, 2.0f) + std::pow(y2 - y1, 2.0f)); //distance between ship centre and shot centre (Pythagoreas)
+    return (d < r1 + r2);
 }
 
 GLboolean CheckCollisionShipPowerUp(ShipObject& ship, PowerUp& power_up) // AABB - AABB collision

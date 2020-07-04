@@ -12,7 +12,7 @@ ShipObject::ShipObject()
     : GameObject(), Invulnerable(GL_FALSE){ }
 
 ShipObject::ShipObject(glm::vec2 pos, glm::vec2 size, glm::vec2 velocity, Texture2D* sprite)
-    : GameObject(pos, size, sprite, glm::vec3(1.0f), velocity), Invulnerable(GL_FALSE), Shields(10), WeaponType(0), WeaponPower(0){ }
+    : GameObject(pos, size, sprite, glm::vec3(1.0f), velocity), Invulnerable(GL_FALSE), Radius(size.x/2), Shields(10), WeaponType(0), WeaponPower(0){ }
 
 
 glm::vec2 ShipObject::FiringPosition()
