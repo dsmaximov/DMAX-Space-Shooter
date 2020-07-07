@@ -42,27 +42,27 @@ void GameEnemies::init(const std::vector<std::vector<GLuint>>& tileData, GLuint 
             // Check block type from level data (2D level array)
             if (tileData[y][x] == 1) // Solid
             {
-                glm::vec2 pos(ENEMY_DISTANCE * x, - ENEMY_DISTANCE * y); //start above the visible screen
+                glm::vec2 pos(ENEMY_DISTANCE * x, INITIALIZATION_DISTANCE - ENEMY_DISTANCE * y); //start above the visible screen
                 this->Enemies.push_back(new EnemyObject(pos, ENEMYRADIUS1, ENEMYVELOCITY1, ENEMYTEXTURE1, ENEMYSTRENGHT1, SCOREPOINTS1, 1, NUMBEROFSHOTS1, SHOTVELOCITY1));
             }
             if (tileData[y][x] == 2) // Solid
             {
-                glm::vec2 pos(ENEMY_DISTANCE * x, - ENEMY_DISTANCE * y); //- levelHeight * 2); //start above the visible screen
+                glm::vec2 pos(ENEMY_DISTANCE * x, INITIALIZATION_DISTANCE - ENEMY_DISTANCE * y); //- levelHeight * 2); //start above the visible screen
                 this->Enemies.push_back(new EnemyObject(pos, ENEMYRADIUS2, ENEMYVELOCITY2, ENEMYTEXTURE2, ENEMYSTRENGHT2, SCOREPOINTS2, 2, NUMBEROFSHOTS2, SHOTVELOCITY2));
             }
             if (tileData[y][x] == 3) // Solid
             {
-                glm::vec2 pos(ENEMY_DISTANCE * x, - ENEMY_DISTANCE * y); //- levelHeight * 2); //start above the visible screen
+                glm::vec2 pos(ENEMY_DISTANCE * x, INITIALIZATION_DISTANCE - ENEMY_DISTANCE * y); //- levelHeight * 2); //start above the visible screen
                 this->Enemies.push_back(new EnemyObject(pos, ENEMYRADIUS3, ENEMYVELOCITY3, ENEMYTEXTURE3, ENEMYSTRENGHT3, SCOREPOINTS3, 3, NUMBEROFSHOTS3, SHOTVELOCITY3));
             }
             if (tileData[y][x] == 4) // Solid
             {
-                glm::vec2 pos(ENEMY_DISTANCE * x, - ENEMY_DISTANCE * y); //- levelHeight * 2); //start above the visible screen
+                glm::vec2 pos(ENEMY_DISTANCE * x, INITIALIZATION_DISTANCE - ENEMY_DISTANCE * y); //- levelHeight * 2); //start above the visible screen
                 this->Enemies.push_back(new EnemyObject(pos, ENEMYRADIUS4, ENEMYVELOCITY4, ENEMYTEXTURE4, ENEMYSTRENGHT4, SCOREPOINTS4, 4, NUMBEROFSHOTS4, SHOTVELOCITY4));
             }
             if (tileData[y][x] == 5) // Solid
             {
-                glm::vec2 pos(ENEMY_DISTANCE * x, - ENEMY_DISTANCE * y); //- levelHeight * 2); //start above the visible screen
+                glm::vec2 pos(ENEMY_DISTANCE * x, INITIALIZATION_DISTANCE - ENEMY_DISTANCE * y); //- levelHeight * 2); //start above the visible screen
                 this->Enemies.push_back(new EnemyObject(pos, ENEMYRADIUS5, ENEMYVELOCITY5, ENEMYTEXTURE5, ENEMYSTRENGHT5, SCOREPOINTS5, 5, NUMBEROFSHOTS5, SHOTVELOCITY5));
             }
 

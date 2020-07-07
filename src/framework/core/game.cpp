@@ -66,8 +66,9 @@ std::vector <MenuButton*> AllMenuButtons;
 std::vector<PowerUp*>   PowerUps;
 int ActiveMenuButton;
 int NextPowerUp;
+glm::vec2 EndLevelFadeoutSize;
 Game::Game(GLuint width, GLuint height, GLuint scroll_speed)
-        : State(GAME_MAIN_MENU), Keys(), KeysProcessed(), Width(width), Height(height), Level(0), ScrollSpeed(scroll_speed), KeyCode(0)
+        : State(GAME_MAIN_MENU), Keys(), KeysProcessed(), Width(width), Height(height), Level(1), ScrollSpeed(scroll_speed), KeyCode(0), PulseCoeff(1200.0f), PulseFlag(false)
 {
 
 }
@@ -98,7 +99,12 @@ void Game::Init()
     ResourceManager::GetShader("particle")->Use().SetInteger("sprite", 0);
     ResourceManager::GetShader("particle")->SetMatrix4("projection", projection);
     // Load textures
-    ResourceManager::LoadTexture("res/textures/background.jpg", GL_FALSE, "background");
+    ResourceManager::LoadTexture("res/textures/background1.jpg", GL_FALSE, "background1");
+    ResourceManager::LoadTexture("res/textures/background2.jpg", GL_FALSE, "background2");
+    ResourceManager::LoadTexture("res/textures/background2.jpg", GL_FALSE, "background3");
+    ResourceManager::LoadTexture("res/textures/background2.jpg", GL_FALSE, "background4");
+    ResourceManager::LoadTexture("res/textures/end_level_fadeout_alpha.png", GL_TRUE, "end_level_fadeout_alpha");
+    ResourceManager::LoadTexture("res/textures/end_level_fadeout_solid.png", GL_TRUE, "end_level_fadeout_solid");
     ResourceManager::LoadTexture("res/textures/awesomeface.png", GL_TRUE, "face");
     ResourceManager::LoadTexture("res/textures/shot1.png", GL_TRUE, "shot1");
     ResourceManager::LoadTexture("res/textures/ship_shot0.png", GL_TRUE, "ship_shot0");
@@ -120,6 +126,7 @@ void Game::Init()
     ResourceManager::LoadTexture("res/textures/particle.png", GL_TRUE, "particle");
     ResourceManager::LoadTexture("res/textures/explosion.png", GL_TRUE, "explosion");
     ResourceManager::LoadTexture("res/textures/shield_hit.png", GL_TRUE, "shield_hit");
+    ResourceManager::LoadTexture("res/textures/player_hit.png", GL_TRUE, "player_hit");
     ResourceManager::LoadTexture("res/textures/shield.png", GL_TRUE, "shield");
     ResourceManager::LoadTexture("res/textures/powerup_health.png", GL_TRUE, "powerup_health");
     ResourceManager::LoadTexture("res/textures/powerup_power.png", GL_TRUE, "powerup_power");
@@ -167,7 +174,7 @@ void Game::Init()
     this->Levels.push_back(two);
     this->Levels.push_back(three);
     this->Levels.push_back(four);
-    this->Level = 0;
+    this->Level = 1;
     // Configure menu buttons
     ButtonNew->ButtonAvailable = true;
     ButtonHighScores->ButtonAvailable = true;
@@ -184,9 +191,11 @@ void Game::Init()
     glm::vec2 ballPos_1 = glm::vec2(Ship->FiringPosition().x, Ship->FiringPosition().y - BALL_RADIUS);
     AllGameEnemies = new GameEnemies(&Ship->Position);
     AllPlayerShots = new GameShots();
-    GameBackgound = new Background(glm::vec2(0, 0), ResourceManager::GetTexture("background"), Width, Height);
-    //Shot = new ShotObject(Ship->FiringPosition(), 6.0f, 1, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("face"));
-    AllGameEnemies->Load("res/levels/two.lvl", this->Width, this->Height * 0.5);
+    GameBackgound = new Background(glm::vec2(0, 0), ResourceManager::GetTexture("background1"), Width, Height);
+    //Load enemies from file
+    std::string LFString = "res/levels/" + std::to_string(Level) + ".lvl";
+    const GLchar* LevelFile = LFString.c_str();
+    AllGameEnemies->Load(LevelFile, this->Width, this->Height * 0.5);
     //GameEnemies Wave1; Wave1.Load("res/levels/two.lvl", this->Width, this->Height * 0.5);
     //Set particle engines
     ParticlesEngineLeft = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
@@ -195,6 +204,7 @@ void Game::Init()
     this->Shields = 3;
     NextPowerUp = 1;
     SoundEngineMenu->play2D("res/audio/Urban-Future.mp3", GL_TRUE);
+    EndLevelFadeoutSize = glm::vec2(1.0f, 1.0f);
 }
 void Game::ReInit()
 {
@@ -203,12 +213,58 @@ void Game::ReInit()
     this->Levels.clear();
     PowerUps.clear();
     NextPowerUp = 1;
+    this->Level = 1;
+
 }
 void UpdateExplosionParticleEngines(std::vector <ParticleGeneratorExplosion*> explosionvector, GLfloat dt); //Explosion Particle engines update function
-void Game::Update(GLfloat dt, GLfloat scroll_speed)
+void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
 {
-    // Update objects
+
+    
+    // Update depending on Game.State
+    if (this->State == GAME_LEVEL_COMPLETE)
+    {
+        if (!LevelLoaded)
+        {
+            LevelLoaded = true;
+            AllGameEnemies->Shots.clear();
+            SoundEngineGame->stopAllSounds();
+            SoundEngineGame->play2D("res/audio/level_complete.wav", GL_FALSE);
+        }
+        //fadeout pulse
+        if (EndLevelFadeoutSize.x > screen_size.x * 5.0f && !PulseFlag)
+        {
+            PulseCoeff = -PulseCoeff;
+            PulseFlag = true;
+            std::string BCKString = "background" + std::to_string(Level+1); // set next level background
+            const GLchar* BackgroundFile = BCKString.c_str();
+            GameBackgound = new Background(glm::vec2(0, 0), ResourceManager::GetTexture(BackgroundFile), Width, Height);
+        }
+        //fadeout pulse finished, start next level
+        if (EndLevelFadeoutSize.x < 1.0f && PulseFlag)
+        {
+            std::string LFString = "res/levels/" + std::to_string(Level) + ".lvl";
+            const GLchar* LevelFile = LFString.c_str();
+            AllGameEnemies->Load(LevelFile, this->Width, this->Height * 0.5);
+            PulseCoeff = -PulseCoeff;
+            PulseFlag = false;
+            this->State = GAME_ACTIVE;
+            LevelLoaded = false;
+            Level++;
+            EndLevelFadeoutSize = glm::vec2(1.0f, 1.0f);
+            SoundEngineGame->stopAllSounds();
+            SoundEngineGame->play2D("res/audio/Background DMAX.mp3", GL_TRUE);
+        }
+        EndLevelFadeoutSize += dt * PulseCoeff;
+    }
     if (this->State == GAME_ACTIVE)
+    {
+        if (AllGameEnemies->Enemies.empty())
+        {
+            this->State = GAME_LEVEL_COMPLETE;
+        }
+    }
+    if (this->State == GAME_ACTIVE || this->State == GAME_LEVEL_COMPLETE)
     {
         GameBackgound->Move(dt, scroll_speed, Height, glm::vec2(0.0f, 0.0f));
         AllPlayerShots->Move(dt, this->Width, this->Height, glm::vec2(Ship->FiringPosition().x - BALL_RADIUS, Ship->FiringPosition().y - BALL_RADIUS));
@@ -223,10 +279,12 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed)
         if (this->Shields == 0 && this->Score <= HighScoresData->LowestEntry())
         {
             this->State = GAME_LOSE;
+            ButtonContinue->ButtonAvailable == false;
         }
         if (this->Shields == 0 && this->Score > HighScoresData->LowestEntry())
         {
             this->State = GAME_ENTER_INITIALS;
+            ButtonContinue->ButtonAvailable == false;
         }
     }
     ParticlesEngineLeft->Update(dt, *Ship, 2, glm::vec2(0.25f * Ship->Size.x, Ship->Size.y));
@@ -262,13 +320,13 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed)
     //}
     // Check win condition
 
-    if (this->State == GAME_ACTIVE && this->Levels[this->Level].IsCompleted())
-    {
-        this->ResetLevel();
-        this->ResetPlayer();
-        Effects->Chaos = GL_TRUE;
-        this->State = GAME_WIN;
-    }
+    //if (this->State == GAME_ACTIVE && this->Levels[this->Level].IsCompleted())
+    //{
+    //    this->ResetLevel();
+    //    this->ResetPlayer();
+    //    Effects->Chaos = GL_TRUE;
+    //    this->State = GAME_WIN;
+    //}
 }
 
 
@@ -278,7 +336,7 @@ void Game::ProcessInput(GLfloat dt)
     if (this->State != GAME_MAIN_MENU && this->Keys[GLFW_KEY_ESCAPE] && !this->KeysProcessed[GLFW_KEY_ESCAPE])
     {
         this->KeysProcessed[GLFW_KEY_ESCAPE] = GL_TRUE;
-        if (this->State == GAME_ACTIVE)
+        if (this->State == GAME_ACTIVE || this->State == GAME_LEVEL_COMPLETE)
         {
             ButtonContinue->ButtonAvailable = true;
             ActiveMenuButton = BUTTON_CONTINUE;
@@ -375,7 +433,7 @@ void Game::ProcessInput(GLfloat dt)
     {
 
     }
-    if (this->State == GAME_ACTIVE)
+    if (this->State == GAME_ACTIVE || this->State == GAME_LEVEL_COMPLETE)
     {
         GLfloat velocity = PLAYER_VELOCITY * dt;
         // Move playerboard
@@ -475,7 +533,7 @@ void Game::ProcessInput(GLfloat dt)
 
 void Game::Render()
 {
-    if (this->State == GAME_ACTIVE || this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS)//|| this->State == GAME_MENU || this->State == GAME_WIN)
+    if (this->State == GAME_ACTIVE || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS)
     {
         // Begin rendering to postprocessing quad
         Effects->BeginRender();
@@ -524,8 +582,7 @@ void Game::Render()
         Text->RenderText("Score:" + ss.str(), 5.0f, 5.0f, 1.0f);
         Text->RenderText("Shields:", 172.0f, 5.0f, 1.0f);
         for (int i = 0; i < Shields; i++) Renderer->DrawSprite(ResourceManager::GetTexture("player_shields"), glm::vec2(295.0f + i * 45.0f, 10.0f), glm::vec2(40.0f, 10.0f));
-        //TODO  remove std::stringstream ss1; ss1 << this->Shields;
-        //      Text->RenderText("Shields:" + ss1.str(), 170.0f, 50.0f, 1.0f);
+
     }
     if (this->State == GAME_LOSE)
     {
@@ -589,6 +646,11 @@ void Game::Render()
         Text->RenderText("Sound effects: www.freesound.org", this->Width / 2 - 300, this->Height / 2 - 60, .7f, glm::vec3(.9f, .9f, .3f));
         
         
+    }
+    if (this->State == GAME_LEVEL_COMPLETE)
+    {
+        Renderer->DrawSprite(ResourceManager::GetTexture("end_level_fadeout_solid"), glm::vec2(Height/2, Width/2) - EndLevelFadeoutSize / 2.0f, EndLevelFadeoutSize);
+        Text->RenderText("LEVEL " + std::to_string(Level) + " COMPLETE", this->Width / 2 - 180, this->Height / 2 - 100, 1.5f, glm::vec3(.2f, 1.0f, .0f));
     }
     if (this->State == GAME_WIN)
     {
@@ -870,6 +932,7 @@ void Game::DoCollisions()
                                 (*EnemyIterator)->Position, glm::vec2(0.0f, 70.0f), POWER_UP_SIZE, ResourceManager::GetTexture("powerup_weapon2")));
                         }
                         NextPowerUp++;
+
                     }
                 }
             }
@@ -904,9 +967,9 @@ void Game::DoCollisions()
             {
                 Shields--;
                 (*EnemyShotIterator)->Power = 0;
-                SoundEngineGame->play2D("res/audio/shieldhit.wav", GL_FALSE); //if ship has shields
+                SoundEngineGame->play2D("res/audio/player_hit.wav", GL_FALSE); //if ship has shields
                 ShieldHitParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("shield_hit"), 500,
-                    *(*EnemyShotIterator), 2, glm::vec2(0, 0), glm::vec4(0.0f, 0.5f, 1.0f, 1.0f), 0.4f));
+                    *(*EnemyShotIterator), 2, glm::vec2(0, 0), glm::vec4(0.9f, 0.7f, 0.6f, 1.0f), 0.6f));
             }
         }
     }

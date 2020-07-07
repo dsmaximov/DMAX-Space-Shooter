@@ -27,6 +27,7 @@ enum GameState {
     GAME_WIN,
     GAME_LOSE,
     GAME_HIGHSCORE_MENU,
+    GAME_LEVEL_COMPLETE,
     GAME_ENTER_INITIALS,
     GAME_HELP,
     GAME_CREDITS
@@ -74,6 +75,7 @@ public:
     GameState              State;
     GLboolean              Keys[1024];
     GLboolean              KeysProcessed[1024];
+    GLboolean              LevelLoaded;
     GLint                  KeyCode;
     int                    KeyAction;
     GLuint                 Width , Height;
@@ -82,6 +84,8 @@ public:
     GLuint                 Shields;
     GLuint                 Score;
     GLint                  ScrollSpeed;
+
+    
     std::vector <ParticleGeneratorExplosion*>ExplosionParticleEngines;
     std::vector <ParticleGeneratorExplosion*>ShieldHitParticleEngines;
     // Constructor/Destructor
@@ -93,7 +97,7 @@ public:
     void ReInit(); 
     // GameLoop
     void ProcessInput(GLfloat dt);
-    void Update(GLfloat dt, GLfloat scroll_speed);
+    void Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size);
     void Render();
     void DoCollisions();
     // Reset
@@ -103,6 +107,10 @@ public:
     void SpawnPowerUps(GameObject &block);
     void UpdatePowerUps(GLfloat dt);
   //  void UpdateExplosionParticleEngines(std::vector <ParticleGeneratorExplosion*> explosionvector, GLfloat dt);
+private:
+    // GAME_LEVEL_COMPLETE variables
+    GLfloat PulseCoeff;
+    GLboolean PulseFlag;
 };
 
 #endif

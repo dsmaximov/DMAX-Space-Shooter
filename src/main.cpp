@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
         // Manage user input
         Breakout.ProcessInput(deltaTime);
         // Update Game state
-        Breakout.Update(deltaTime, SCROLL_SPEED);
+        Breakout.Update(deltaTime, SCROLL_SPEED, glm::vec2(SCREEN_WIDTH, SCREEN_HEIGHT));
 
         // Render
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

@@ -93,7 +93,8 @@ private:
     GLfloat       SHOTRADIUS5 = 5.0f;
     glm::vec2     SHOTVELOCITY5 = glm::vec2(0.0f, 200.0f);
 
-    const GLint ENEMY_DISTANCE = 100;
+    const GLint ENEMY_DISTANCE = 100;              //distance between enemies
+    const GLint INITIALIZATION_DISTANCE = -400;     //initial distance above starting screen 
 
 };
 
