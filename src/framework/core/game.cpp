@@ -20,6 +20,7 @@ using namespace irrklang;
 #include "framework/rendering/sprite_renderer.h"
 #include "framework/rendering/particle_generator.h"
 #include "framework/rendering/particle_generator_expl.h"
+#include "framework/rendering/particle_generator_endgame.h"
 #include "framework/rendering/post_processor.h"
 #include "framework/rendering/text_renderer.h"
 #include "game/ball_object.h"
@@ -45,6 +46,7 @@ ParticleGenerator * ParticlesEngineLeft;
 ParticleGenerator * ParticlesEngineRight;
 ParticleGeneratorExplosion* ParticlesEngineExpl;
 ParticleGeneratorExplosion* ParticlesEngineShieldHit;
+ParticleGeneratorEndgame* ParticlesEngineEnd;
 PostProcessor     * Effects;
 ISoundEngine      * SoundEngineGame = createIrrKlangDevice();
 ISoundEngine      * SoundEngineMenu = createIrrKlangDevice();
@@ -101,8 +103,8 @@ void Game::Init()
     // Load textures
     ResourceManager::LoadTexture("res/textures/background1.jpg", GL_FALSE, "background1");
     ResourceManager::LoadTexture("res/textures/background2.jpg", GL_FALSE, "background2");
-    ResourceManager::LoadTexture("res/textures/background2.jpg", GL_FALSE, "background3");
-    ResourceManager::LoadTexture("res/textures/background2.jpg", GL_FALSE, "background4");
+    ResourceManager::LoadTexture("res/textures/background3.jpg", GL_FALSE, "background3");
+    ResourceManager::LoadTexture("res/textures/background4.jpg", GL_FALSE, "background4");
     ResourceManager::LoadTexture("res/textures/end_level_fadeout_alpha.png", GL_TRUE, "end_level_fadeout_alpha");
     ResourceManager::LoadTexture("res/textures/end_level_fadeout_solid.png", GL_TRUE, "end_level_fadeout_solid");
     ResourceManager::LoadTexture("res/textures/awesomeface.png", GL_TRUE, "face");
@@ -149,15 +151,17 @@ void Game::Init()
     // Set menu buttons
     ButtonContinue = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "Continue");
     ButtonNew = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "New Game");
-    ButtonSave = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "Save");
-    ButtonLoad = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "Load");
+    //Removed functionality - not suitable for shooter games
+    //ButtonSave = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "Save");
+    //ButtonLoad = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "Load");
     ButtonHighScores = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "High Scores");
     ButtonHelp = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "Help");
     ButtonCredits = new MenuButton(ResourceManager::GetShader("sprite"), ResourceManager::GetTexture("button"), ResourceManager::GetTexture("selection"), "Credits");
     AllMenuButtons.push_back(ButtonContinue);
     AllMenuButtons.push_back(ButtonNew);
-    AllMenuButtons.push_back(ButtonSave);
-    AllMenuButtons.push_back(ButtonLoad);
+    //Removed functionality - not suitable for shooter games
+    //AllMenuButtons.push_back(ButtonSave);
+    //AllMenuButtons.push_back(ButtonLoad);
     AllMenuButtons.push_back(ButtonHighScores);
     AllMenuButtons.push_back(ButtonHelp);
     AllMenuButtons.push_back(ButtonCredits);
@@ -212,6 +216,7 @@ void Game::ReInit()
     AllMenuButtons.clear();
     this->Levels.clear();
     PowerUps.clear();
+    this->Shields = 3;
     NextPowerUp = 1;
     this->Level = 1;
 
@@ -219,8 +224,6 @@ void Game::ReInit()
 void UpdateExplosionParticleEngines(std::vector <ParticleGeneratorExplosion*> explosionvector, GLfloat dt); //Explosion Particle engines update function
 void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
 {
-
-    
     // Update depending on Game.State
     if (this->State == GAME_LEVEL_COMPLETE)
     {
@@ -243,6 +246,7 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
         //fadeout pulse finished, start next level
         if (EndLevelFadeoutSize.x < 1.0f && PulseFlag)
         {
+            Level++;
             std::string LFString = "res/levels/" + std::to_string(Level) + ".lvl";
             const GLchar* LevelFile = LFString.c_str();
             AllGameEnemies->Load(LevelFile, this->Width, this->Height * 0.5);
@@ -250,7 +254,6 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
             PulseFlag = false;
             this->State = GAME_ACTIVE;
             LevelLoaded = false;
-            Level++;
             EndLevelFadeoutSize = glm::vec2(1.0f, 1.0f);
             SoundEngineGame->stopAllSounds();
             SoundEngineGame->play2D("res/audio/Background DMAX.mp3", GL_TRUE);
@@ -259,12 +262,29 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
     }
     if (this->State == GAME_ACTIVE)
     {
-        if (AllGameEnemies->Enemies.empty())
+        this->DoCollisions();
+        if (this->Shields == 0)        //Player dead
+        {
+            ButtonContinue->ButtonAvailable == false;
+            ParticlesEngineEnd = new ParticleGeneratorEndgame(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
+                *Ship, 2, Ship->Size / 2.0f, glm::vec4(1.0f, 1.0f, .5f, 1.0f), 0.9f);
+            SoundEngineGame->play2D("res/audio/player_boom.wav", GL_FALSE);
+            AllGameEnemies->Clean();
+            if (this->Score <= HighScoresData->LowestEntry())
+            {
+                this->State = GAME_LOSE;
+            }
+            if (this->Score > HighScoresData->LowestEntry())
+            {
+                this->State = GAME_ENTER_INITIALS;
+            }
+        }
+        if (AllGameEnemies->Enemies.empty() && this->Shields >0)
         {
             this->State = GAME_LEVEL_COMPLETE;
         }
     }
-    if (this->State == GAME_ACTIVE || this->State == GAME_LEVEL_COMPLETE)
+    if (this->State == GAME_ACTIVE || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_LOSE)
     {
         GameBackgound->Move(dt, scroll_speed, Height, glm::vec2(0.0f, 0.0f));
         AllPlayerShots->Move(dt, this->Width, this->Height, glm::vec2(Ship->FiringPosition().x - BALL_RADIUS, Ship->FiringPosition().y - BALL_RADIUS));
@@ -273,22 +293,13 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
         {
             n->Move(dt, 800);
         }
-        this->DoCollisions();
-
-        //Player dead
-        if (this->Shields == 0 && this->Score <= HighScoresData->LowestEntry())
-        {
-            this->State = GAME_LOSE;
-            ButtonContinue->ButtonAvailable == false;
-        }
-        if (this->Shields == 0 && this->Score > HighScoresData->LowestEntry())
-        {
-            this->State = GAME_ENTER_INITIALS;
-            ButtonContinue->ButtonAvailable == false;
-        }
     }
-    ParticlesEngineLeft->Update(dt, *Ship, 2, glm::vec2(0.25f * Ship->Size.x, Ship->Size.y));
-    ParticlesEngineRight->Update(dt, *Ship, 2, glm::vec2(0.68f * Ship->Size.x, Ship->Size.y));
+    if (this->State == GAME_LOSE)
+    {
+        ParticlesEngineEnd->Update(dt);
+    }
+    ParticlesEngineLeft->Update(dt, *Ship, 2, glm::vec2(0.22f * Ship->Size.x, Ship->Size.y));
+    ParticlesEngineRight->Update(dt, *Ship, 2, glm::vec2(0.66f * Ship->Size.x, Ship->Size.y));
     UpdateExplosionParticleEngines(ExplosionParticleEngines, dt);
     UpdateExplosionParticleEngines(ShieldHitParticleEngines, dt);
     // Update PowerUps
@@ -299,34 +310,7 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
         n->Deactivate();
     }
     AllMenuButtons[ActiveMenuButton]->Activate();
-    //// Reduce shake time
-    //if (ShakeTime > 0.0f)
-    //{
-    //    ShakeTime -= dt;
-    //    if (ShakeTime <= 0.0f)
-    //        Effects->Shake = GL_FALSE;
-    //}
-    // Check loss condition
-    //if (Ball->Position.y >= this->Height) // Did ball reach bottom edge?
-    //{
-    //    --this->Lives;
-    //    // Did the player lose all his lives? : Game over
-    //    if (this->Lives == 0)
-    //    {
-    //        this->ResetLevel();
-    //        this->State = GAME_MENU;
-    //    }
-    //    this->ResetPlayer();
-    //}
-    // Check win condition
 
-    //if (this->State == GAME_ACTIVE && this->Levels[this->Level].IsCompleted())
-    //{
-    //    this->ResetLevel();
-    //    this->ResetPlayer();
-    //    Effects->Chaos = GL_TRUE;
-    //    this->State = GAME_WIN;
-    //}
 }
 
 
@@ -346,6 +330,8 @@ void Game::ProcessInput(GLfloat dt)
         }
         if (this->State == GAME_ENTER_INITIALS || this->State == GAME_LOSE)
         {
+            ButtonContinue->ButtonAvailable = false;
+            ActiveMenuButton = BUTTON_NEW;
             SoundEngineGame->stopAllSounds();
             SoundEngineMenu->stopAllSounds();
             SoundEngineMenu->play2D("res/audio/Urban-Future.mp3", GL_TRUE);
@@ -539,18 +525,20 @@ void Game::Render()
         Effects->BeginRender();
             // Draw background
             GameBackgound->Draw(*Renderer);
-            // Draw player engines
-            ParticlesEngineLeft->Draw();
-            ParticlesEngineRight->Draw();
+            // Draw player + player engines
+            if (!(this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS))
+            {
+                Ship->Draw(*Renderer, Shields);
+                ParticlesEngineLeft->Draw();
+                ParticlesEngineRight->Draw();
+            }
+            else
+            {
+                ParticlesEngineEnd->Draw();
+            }
             // Draw all enemy ships in a wave
             AllGameEnemies->Draw(*Renderer);
-            // Draw player
-            Ship->Draw(*Renderer);
             // Draw PowerUps
-            //for (PowerUp &powerUp : this->PowerUps)
-            //    if (!powerUp.Destroyed)
-            //        powerUp.Draw(*Renderer);
-
             for (auto n : PowerUps)
             {
                 n->Draw(*Renderer);
@@ -794,99 +782,6 @@ Direction VectorDirection(glm::vec2 closest);
 
 void Game::DoCollisions()
 {
-    //
-    //for (GameObject &box : this->Levels[this->Level].Bricks)
-    //{
-    //    if (!box.Destroyed)
-    //    {
-    //        Collision collision = CheckCollision(*Ball, box);
-    //        if (std::get<0>(collision)) // If collision is true
-    //        {
-    //            // Destroy block if not solid
-    //            if (!box.IsSolid)
-    //            {
-    //                box.Destroyed = GL_TRUE;
-    //                this->SpawnPowerUps(box);
-    //                SoundEngine->play2D("res/audio/bleep.mp3", GL_FALSE);
-    //            }
-    //            else
-    //            {   // if block is solid, enable shake effect
-    //                ShakeTime = 0.05f;
-    //                Effects->Shake = GL_TRUE;
-    //                SoundEngine->play2D("res/audio/solid.wav", GL_FALSE);
-    //            }
-    //            // Collision resolution
-    //            Direction dir = std::get<1>(collision);
-    //            glm::vec2 diff_vector = std::get<2>(collision);
-    //            if (!(Ball->PassThrough && !box.IsSolid)) // don't do collision resolution on non-solid bricks if pass-through activated
-    //            {
-    //                if (dir == LEFT || dir == RIGHT) // Horizontal collision
-    //                {
-    //                    Ball->Velocity.x = -Ball->Velocity.x; // Reverse horizontal velocity
-    //                    // Relocate
-    //                    GLfloat penetration = Ball->Radius - std::abs(diff_vector.x);
-    //                    if (dir == LEFT)
-    //                        Ball->Position.x += penetration; // Move ball to right
-    //                    else
-    //                        Ball->Position.x -= penetration; // Move ball to left;
-    //                }
-    //                else // Vertical collision
-    //                {
-    //                    Ball->Velocity.y = -Ball->Velocity.y; // Reverse vertical velocity
-    //                    // Relocate
-    //                    GLfloat penetration = Ball->Radius - std::abs(diff_vector.y);
-    //                    if (dir == UP)
-    //                        Ball->Position.y -= penetration; // Move ball bback up
-    //                    else
-    //                        Ball->Position.y += penetration; // Move ball back down
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
-
-    //// Also check collisions on PowerUps and if so, activate them
-    //for (PowerUp &powerUp : this->PowerUps)
-    //{
-    //    if (!powerUp.Destroyed)
-    //    {
-    //        // First check if powerup passed bottom edge, if so: keep as inactive and destroy
-    //        if (powerUp.Position.y >= this->Height)
-    //            powerUp.Destroyed = GL_TRUE;
-
-    //        if (CheckCollision(*Ship, powerUp))
-    //        {	// Collided with player, now activate powerup
-    //            ActivatePowerUp(powerUp);
-    //            powerUp.Destroyed = GL_TRUE;
-    //            powerUp.Activated = GL_TRUE;
-    //            SoundEngine->play2D("res/audio/powerup.wav", GL_FALSE);
-    //        }
-    //    }
-    //}
-
-    // And finally check collisions for player pad (unless stuck)
-    //Collision result = CheckCollision(*Ball, *Ship);
-    //if (!Ball->Stuck && std::get<0>(result))
-    //{
-    //    // Check where it hit the board, and change velocity based on where it hit the board
-    //    GLfloat centerBoard = Ship->Position.x + Ship->Size.x / 2;
-    //    GLfloat distance = (Ball->Position.x + Ball->Radius) - centerBoard;
-    //    GLfloat percentage = distance / (Ship->Size.x / 2);
-    //    // Then move accordingly
-    //    GLfloat strength = 2.0f;
-    //    glm::vec2 oldVelocity = Ball->Velocity;
-    //    Ball->Velocity.x = INITIAL_BALL_VELOCITY.x * percentage * strength;
-    //    //Ball->Velocity.y = -Ball->Velocity.y;
-    //    Ball->Velocity = glm::normalize(Ball->Velocity) * glm::length(oldVelocity); // Keep speed consistent over both axes (multiply by length of old velocity, so total strength is not changed)
-    //    // Fix sticky paddle
-    //    Ball->Velocity.y = -1 * abs(Ball->Velocity.y);
-
-    //    // If Sticky powerup is activated, also stick ball to paddle once new velocity vectors were calculated
-    //    Ball->Stuck = Ball->Sticky;
-
-    //    SoundEngine->play2D("res/audio/bleep.wav", GL_FALSE);
-    //}
-
     //Collisions between player shots and enemies
     for (auto EnemyIterator = AllGameEnemies->Enemies.begin(); EnemyIterator != AllGameEnemies->Enemies.end(); EnemyIterator++)
     {

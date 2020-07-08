@@ -51,7 +51,7 @@ private:
     GLfloat       ENEMYRADIUS1 = 35.0f;
     glm::vec2     ENEMYVELOCITY1 = glm::vec2 (0.0f, 100.0f);
     Texture2D*          ENEMYTEXTURE1 = ResourceManager::GetTexture("enemy1");
-    GLint         ENEMYSTRENGHT1 = 2;
+    GLint         ENEMYSTRENGHT1 = 10;
     GLint         SCOREPOINTS1 = 10;
     GLint         NUMBEROFSHOTS1 = 1;
     GLfloat       SHOTRADIUS1 = 5.0f;
@@ -94,7 +94,7 @@ private:
     glm::vec2     SHOTVELOCITY5 = glm::vec2(0.0f, 200.0f);
 
     const GLint ENEMY_DISTANCE = 100;              //distance between enemies
-    const GLint INITIALIZATION_DISTANCE = -400;     //initial distance above starting screen 
+    const GLint INITIALIZATION_DISTANCE = -400;     //initial distance of enemies above starting screen 
 
 };
 

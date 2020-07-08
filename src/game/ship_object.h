@@ -13,6 +13,8 @@
 #include <glm/glm.hpp>
 
 #include "framework/rendering/texture.h"
+#include "framework/rendering/sprite_renderer.h"
+#include "framework/core/resource_manager.h"
 #include "power_up.h"
 
 // BallObject holds the state of the Ball object inheriting
@@ -32,9 +34,8 @@ public:
     ShipObject();
     ShipObject(glm::vec2 pos, glm::vec2 radius, glm::vec2 velocity, Texture2D * sprite);
     glm::vec2 ShipObject::FiringPosition();
-    // Moves the ball, keeping it constrained within the window bounds (except bottom edge); returns new position
     void Reset(glm::vec2 ShipPosition);
-    // Resets the ship to original state with given position and velocity
+    void Draw(SpriteRenderer& renderer, GLuint shields);
 };
 
 #endif

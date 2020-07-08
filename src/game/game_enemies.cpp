@@ -80,28 +80,28 @@ void GameEnemies::Draw(SpriteRenderer& renderer)
             renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, 1.0f, 1.0f));
             break;
         case 9:
-            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .8f, .9f));
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .9f, 1.0f));
             break;
         case 8:
-            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .8f, .8f));
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .8f, .9f));
             break;
         case 7:
-            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .7f, .7f));
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .7f, .9f));
             break;
         case 6:
-            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .6f, .6f));
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .6f, .8f));
             break;
         case 5:
-            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .5f, .5f));
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .5f, .8f));
             break;
         case 4:
-            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .4f, .4f));
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .5f, .7f));
             break;
         case 3:
-            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .3f, .3f));
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .5f, .6f));
             break;
         case 2:
-            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .2f, .2f));
+            renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, .5f, .5f));
             break;
         }
     }
