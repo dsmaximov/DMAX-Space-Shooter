@@ -109,8 +109,12 @@ public:
   //  void UpdateExplosionParticleEngines(std::vector <ParticleGeneratorExplosion*> explosionvector, GLfloat dt);
 private:
     // GAME_LEVEL_COMPLETE variables
-    GLfloat PulseCoeff;
-    GLboolean PulseFlag;
+    GLfloat PulseCoeff;  //speed of pulsations
+    GLboolean PulseFlag; //change direction of pulsations
+    // Ship.Invulnerability variables
+    GLuint InvulCounter; //speed of pulsations 
+    GLuint InvulFlag;    //change direction of pulsations
+    GLuint InvulTimer;   //lenght of invulnerability
 };
 
 #endif

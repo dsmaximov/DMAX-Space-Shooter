@@ -24,7 +24,10 @@ glm::vec2 ShipObject::FiringPosition()
 void ShipObject::Draw(SpriteRenderer& renderer, GLuint shields)
 {
     renderer.DrawSprite(this->Sprite, this->Position, this->Size, this->Rotation, this->Color);
-    renderer.DrawSprite(ResourceManager::GetTexture("shield"), this->Position-this->Size*0.1f, this->Size*1.2f, this->Rotation, glm::vec3(0.7f, shields/10.0f, shields/10.0f));
+    if (!this->Invulnerable)
+    {
+        renderer.DrawSprite(ResourceManager::GetTexture("shield"), this->Position - this->Size * 0.1f, this->Size * 1.2f, this->Rotation, glm::vec3(0.7f, shields / 10.0f, shields / 10.0f));
+    }
 
 }
 

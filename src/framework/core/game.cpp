@@ -70,7 +70,8 @@ int ActiveMenuButton;
 int NextPowerUp;
 glm::vec2 EndLevelFadeoutSize;
 Game::Game(GLuint width, GLuint height, GLuint scroll_speed)
-        : State(GAME_MAIN_MENU), Keys(), KeysProcessed(), Width(width), Height(height), Level(1), ScrollSpeed(scroll_speed), KeyCode(0), PulseCoeff(1200.0f), PulseFlag(false)
+        : State(GAME_MAIN_MENU), Keys(), KeysProcessed(), Width(width), Height(height), Level(1), ScrollSpeed(scroll_speed), KeyCode(0), PulseCoeff(1200.0f), PulseFlag(false), InvulCounter(0),
+            InvulFlag(false), InvulTimer(0)
 {
 
 }
@@ -219,7 +220,10 @@ void Game::ReInit()
     this->Shields = 3;
     NextPowerUp = 1;
     this->Level = 1;
-
+    PulseFlag = false;
+    InvulCounter = 0;
+    InvulTimer = 0;
+    InvulFlag = false;
 }
 void UpdateExplosionParticleEngines(std::vector <ParticleGeneratorExplosion*> explosionvector, GLfloat dt); //Explosion Particle engines update function
 void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
@@ -284,7 +288,7 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
             this->State = GAME_LEVEL_COMPLETE;
         }
     }
-    if (this->State == GAME_ACTIVE || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_LOSE)
+    if (this->State == GAME_ACTIVE || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS)
     {
         GameBackgound->Move(dt, scroll_speed, Height, glm::vec2(0.0f, 0.0f));
         AllPlayerShots->Move(dt, this->Width, this->Height, glm::vec2(Ship->FiringPosition().x - BALL_RADIUS, Ship->FiringPosition().y - BALL_RADIUS));
@@ -292,6 +296,40 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
         for (auto n : PowerUps)
         {
             n->Move(dt, 800);
+        }
+        // blink ship when invulnerable
+        if (Ship->Invulnerable) 
+        {
+            const GLfloat InvulCoeff = 2.0f;
+            GLfloat InvulColor = InvulCoeff * InvulCounter * dt;
+            if (!InvulFlag)
+            {
+                InvulCounter++;
+                Ship->Color.x = .2f;
+                Ship->Color.y = .2f + InvulCounter * dt;
+                Ship->Color.z = .9f - InvulCounter * dt;
+                if (InvulColor >= .7f) InvulFlag = true;
+            }
+            if (InvulFlag)
+            {
+                InvulCounter--;
+                Ship->Color.x = .2f;
+                Ship->Color.y = .2f + InvulCounter * dt;
+                Ship->Color.z = .9f - InvulCounter * dt;
+                if (InvulColor <= .1f)
+                {
+                    if (InvulFlag) InvulTimer++; //increment timer on every completed invulnerability pulse
+                    InvulFlag = false;
+                }
+            }
+            if (InvulTimer > 3)
+            {
+                Ship->Invulnerable = false;
+                Ship->Color = glm::vec3(1.0f);
+                InvulCounter = 0;
+                InvulFlag = false;
+                InvulTimer = 0;
+            }
         }
     }
     if (this->State == GAME_LOSE)
@@ -839,13 +877,14 @@ void Game::DoCollisions()
     //Collisions between player and enemies
     for (auto EnemyIterator = AllGameEnemies->Enemies.begin(); EnemyIterator != AllGameEnemies->Enemies.end(); EnemyIterator++)
     {
-        if (CheckCollisionShipEnemy(*Ship, *(*EnemyIterator)))
+        if (CheckCollisionShipEnemy(*Ship, *(*EnemyIterator)) && !Ship->Invulnerable)
         {
             Score += (*EnemyIterator)->ScorePoints;
             (*EnemyIterator)->Strenght = 0;
             if (Shields > 0)
             {
                 Shields--;
+                Ship->Invulnerable = true;
             }
             ExplosionParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
                 *(*EnemyIterator), 2, (*EnemyIterator)->Size / 2.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), 0.7f));
@@ -856,10 +895,11 @@ void Game::DoCollisions()
     //Collisions between player and enemy shots
     for (auto EnemyShotIterator = AllGameEnemies->Shots.begin(); EnemyShotIterator != AllGameEnemies->Shots.end(); EnemyShotIterator++)
     {
-        if (CheckCollisionShipShot(*Ship, *(*EnemyShotIterator)))
+        if (CheckCollisionShipShot(*Ship, *(*EnemyShotIterator)) && !Ship->Invulnerable)
         {
             if (Shields > 0)
             {
+                Ship->Invulnerable = true;
                 Shields--;
                 (*EnemyShotIterator)->Power = 0;
                 SoundEngineGame->play2D("res/audio/player_hit.wav", GL_FALSE); //if ship has shields
