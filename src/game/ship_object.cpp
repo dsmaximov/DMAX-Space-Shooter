@@ -9,7 +9,7 @@
 #include "ship_object.h"
 
 ShipObject::ShipObject()
-    : GameObject(), Invulnerable(GL_FALSE){ }
+    : GameObject(), Invulnerable(GL_FALSE), Radius(400), Shields (10), WeaponType(0), WeaponPower(0){ }
 
 ShipObject::ShipObject(glm::vec2 pos, glm::vec2 size, glm::vec2 velocity, Texture2D* sprite)
     : GameObject(pos, size, sprite, glm::vec3(1.0f), velocity), Invulnerable(GL_FALSE), Radius(size.x/2), Shields(10), WeaponType(0), WeaponPower(0){ }

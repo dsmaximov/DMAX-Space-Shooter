@@ -11,7 +11,7 @@ file(GLOB_RECURSE HEADER_FILES_EXE
 	 *.hpp)
 
 # Define the executable
-add_executable(${SAMPLE_NAME} ${HEADER_FILES_EXE} ${SOURCE_FILES_EXE} "game/background.cpp" "game/enemy_object.cpp" "game/game_enemies.cpp" "framework/rendering/particle_generator_expl.cpp" "game/menu_button.cpp" "game/power_up.cpp" "game/high_scores.cpp" "framework/rendering/particle_generator_endgame.cpp")
+add_executable(${SAMPLE_NAME} ${HEADER_FILES_EXE} ${SOURCE_FILES_EXE} "game/background.cpp" "game/enemy_object.cpp" "game/game_enemies.cpp" "framework/rendering/particle_generator_expl.cpp" "game/menu_button.cpp" "game/power_up.cpp" "game/high_scores.cpp" "framework/rendering/particle_generator_endgame.cpp" "game/boss_object.cpp")
 set_property(TARGET ${SAMPLE_NAME} PROPERTY CXX_STANDARD 11)
 
 # Define the include DIRs

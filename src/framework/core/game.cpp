@@ -29,6 +29,7 @@ using namespace irrklang;
 #include "game/game_shots.h"
 #include "game/background.h"
 #include "game/enemy_object.h"
+#include "game/boss_object.h"
 #include "game/menu_button.h"
 #include "game/power_up.h"
 #include "game/high_scores.h"
@@ -42,6 +43,7 @@ SpriteRenderer    * Renderer;
 //std::vector <BallObject*> AllBalls;
 //std::vector <ShotObject*> AllShots;
 ShipObject        * Ship;
+BossObject        * Boss;
 ParticleGenerator * ParticlesEngineLeft;
 ParticleGenerator * ParticlesEngineRight;
 ParticleGeneratorExplosion* ParticlesEngineExpl;
@@ -191,6 +193,7 @@ void Game::Init()
     glm::vec2 playerPos = glm::vec2(this->Width / 2 - PLAYER_SIZE.x / 2, this->Height - PLAYER_SIZE.y*3);
     //Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
     Ship = new ShipObject(playerPos, PLAYER_SIZE, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("ship"));
+    Boss = new BossObject(playerPos, PLAYER_SIZE, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("ship"));
     //Enemy = new EnemyObject(glm::vec2(this->Width/2, PLAYER_SIZE.y),30.0f, VELOCITY, ResourceManager::GetTexture("enemy"),1);
     glm::vec2 ballPos = glm::vec2(Ship->FiringPosition().x - BALL_RADIUS, Ship->FiringPosition().y - BALL_RADIUS);
     glm::vec2 ballPos_1 = glm::vec2(Ship->FiringPosition().x, Ship->FiringPosition().y - BALL_RADIUS);
@@ -210,6 +213,7 @@ void Game::Init()
     NextPowerUp = 1;
     SoundEngineMenu->play2D("res/audio/Urban-Future.mp3", GL_TRUE);
     EndLevelFadeoutSize = glm::vec2(1.0f, 1.0f);
+    Boss->Init();
 }
 void Game::ReInit()
 {
@@ -415,7 +419,8 @@ void Game::ProcessInput(GLfloat dt)
             //start a new game
             if (ButtonNew->ButtonPressed)
             {
-                this->State = GAME_ACTIVE;
+                //this->State = GAME_ACTIVE;
+                this->State = GAME_BOSS;
                 this->ReInit();
                 this->Init();
                 SoundEngineMenu->stopAllSounds();
@@ -557,7 +562,7 @@ void Game::ProcessInput(GLfloat dt)
 
 void Game::Render()
 {
-    if (this->State == GAME_ACTIVE || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS)
+    if (this->State == GAME_ACTIVE || this->State == GAME_BOSS || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS)
     {
         // Begin rendering to postprocessing quad
         Effects->BeginRender();
@@ -599,6 +604,7 @@ void Game::Render()
             }
             //draw all player shots
             AllPlayerShots->Draw(*Renderer);
+            Boss->Draw(*Text,*Renderer);
          // End rendering to postprocessing quad
         Effects->EndRender();
         // Render postprocessing quad
