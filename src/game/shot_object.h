@@ -29,7 +29,7 @@ public:
     ShotObject();
     ShotObject(glm::vec2 pos, GLfloat radius, GLint power, glm::vec2 velocity, Texture2D* sprite);
     // Moves the shot
-    glm::vec2 Move(GLfloat dt, GLuint window_width, glm::vec2 ShipPosition);
+    glm::vec2 Move(GLfloat dt);//TODO remove, GLuint window_width, glm::vec2 ShipPosition);
     // Returns true if shot is out of screen
     GLboolean OutOfBounds(GLuint window_width, GLuint window_height);
     // Resets the ball to original state with given position and velocity

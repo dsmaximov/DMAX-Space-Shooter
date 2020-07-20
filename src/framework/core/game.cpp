@@ -193,7 +193,7 @@ void Game::Init()
     glm::vec2 playerPos = glm::vec2(this->Width / 2 - PLAYER_SIZE.x / 2, this->Height - PLAYER_SIZE.y*3);
     //Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
     Ship = new ShipObject(playerPos, PLAYER_SIZE, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("ship"));
-    Boss = new BossObject(playerPos, PLAYER_SIZE, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("ship"));
+    Boss = new BossObject(&Ship->Position);
     //Enemy = new EnemyObject(glm::vec2(this->Width/2, PLAYER_SIZE.y),30.0f, VELOCITY, ResourceManager::GetTexture("enemy"),1);
     glm::vec2 ballPos = glm::vec2(Ship->FiringPosition().x - BALL_RADIUS, Ship->FiringPosition().y - BALL_RADIUS);
     glm::vec2 ballPos_1 = glm::vec2(Ship->FiringPosition().x, Ship->FiringPosition().y - BALL_RADIUS);
@@ -292,11 +292,12 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
             this->State = GAME_LEVEL_COMPLETE;
         }
     }
-    if (this->State == GAME_ACTIVE || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS)
+    if (this->State == GAME_ACTIVE || this->State == GAME_BOSS || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS)
     {
         GameBackgound->Move(dt, scroll_speed, Height, glm::vec2(0.0f, 0.0f));
         AllPlayerShots->Move(dt, this->Width, this->Height, glm::vec2(Ship->FiringPosition().x - BALL_RADIUS, Ship->FiringPosition().y - BALL_RADIUS));
         AllGameEnemies->Move(dt, this->Width, this->Height);
+        Boss->Move(dt, this->Width, this->Height);
         for (auto n : PowerUps)
         {
             n->Move(dt, 800);

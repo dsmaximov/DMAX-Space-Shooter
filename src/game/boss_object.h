@@ -18,32 +18,44 @@ class BossObject
 {
 public:
 	GLuint Strength;
-	BossObject(glm::vec2 pos, glm::vec2 size, glm::vec2 velocity, Texture2D* sprite);
+    GLuint Stage;
+	BossObject(glm::vec2* ship_position);
 	void Init();
 	void Draw(TextRenderer& trenderer, SpriteRenderer& renderer);
-	void Update(GLfloat dt);
-private:
-	
+	void Move(GLfloat dt, GLuint window_width, GLuint window_height);
+
     std::vector <EnemyObject*> BossTurrets;
+    std::vector<ShotObject*> Shots;
+private:
     std::chrono::duration<GLint> BossTimer();
     std::chrono::steady_clock::time_point InitialTime;
     std::chrono::steady_clock::time_point CurrentTime;
+    void UpdateShots(GLfloat dt, GLuint window_width, GLuint window_height);
+
+    glm::vec2* ShipPosition;
 
     //Turret 1
-    GLfloat       ENEMYRADIUS1 = 35.0f;
-    glm::vec2     ENEMYVELOCITY1 = glm::vec2(0.0f, 100.0f);
-    Texture2D*    ENEMYTEXTURE1 = ResourceManager::GetTexture("enemy1");
-    GLint         ENEMYSTRENGHT1 = 10;
+    GLint         TURRETCOUNT1 = 4;
+    GLfloat         TURRETDISTANCE1 = 170.0f;
+    GLfloat       TURRETRADIUS1 = 30.0f;
+    glm::vec2     TURRETVELOCITY1 = glm::vec2(0.0f, 100.0f);
+    Texture2D*    TURRETTEXTURE1 = ResourceManager::GetTexture("enemy1");
+    GLint         TURRETSTRENGHT1 = 10;
     GLint         SCOREPOINTS1 = 10;
     GLfloat       SHOTRADIUS1 = 5.0f;
     glm::vec2     SHOTVELOCITY1 = glm::vec2(0.0f, 200.0f);
     //Turret 2
-    GLfloat       ENEMYRADIUS2 = 35.0f;
-    glm::vec2     ENEMYVELOCITY2 = glm::vec2(0.0f, 100.0f);
-    Texture2D*    ENEMYTEXTURE2 = ResourceManager::GetTexture("enemy2");
-    GLint         ENEMYSTRENGHT2 = 10;
+    GLint         TURRETCOUNT2 = 3;
+    GLfloat         TURRETDISTANCE2 = 170.0f;
+    GLfloat       TURRETRADIUS2 = 30.0f;
+    glm::vec2     TURRETVELOCITY2 = glm::vec2(0.0f, 100.0f);
+    Texture2D*    TURRETTEXTURE2 = ResourceManager::GetTexture("enemy2");
+    GLint         TURRETSTRENGHT2 = 10;
     GLint         SCOREPOINTS2 = 20;
     GLfloat       SHOTRADIUS2 = 5.0f;
     glm::vec2     SHOTVELOCITY2 = glm::vec2(0.0f, 200.0f);
+
+    bool RightReached = false; //used to control oscillating movement in X
+    bool LeftReached = true;
 };
 #endif

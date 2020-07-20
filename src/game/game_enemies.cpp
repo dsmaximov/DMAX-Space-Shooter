@@ -193,7 +193,7 @@ void GameEnemies::UpdateShots(GLfloat dt, GLuint window_width, GLuint window_hei
     }
     for (auto n : Shots)
     {
-        n->Move(dt, window_width, glm::vec2(100.0f, 100.0f));
+        n->Move(dt);//TODO remove, window_width, glm::vec2(100.0f, 100.0f));
     }
     for (auto it = Shots.begin(); it != Shots.end(); /*nothing*/) //erase shots
     {

@@ -19,7 +19,7 @@ void GameShots::Move(GLfloat dt, GLuint window_width, GLuint window_height, glm:
 {
     for (auto n : Shots)
     {
-        n->Move(dt, window_width, pos);    
+        n->Move(dt);//TODO remove , window_width, pos);
     }
     for (auto it = Shots.begin(); it != Shots.end(); /*nothing*/)
     {

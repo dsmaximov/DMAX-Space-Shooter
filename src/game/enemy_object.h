@@ -31,7 +31,7 @@ public:
     glm::vec2 ShotVelocity;
     // Constructor(s)
     EnemyObject();
-    EnemyObject(glm::vec2 pos, GLfloat radius, glm::vec2 velocity, Texture2D * sprite, GLint strenght, GLint type, GLint scorepoints, GLint number_of_shots, glm::vec2 shot_velocity);
+    EnemyObject(glm::vec2 pos, GLfloat radius, glm::vec2 velocity, Texture2D * sprite, GLint strenght, GLint scorepoints, GLint type, GLint number_of_shots, glm::vec2 shot_velocity);
     // Position where the shots come from
     glm::vec2 EnemyObject::FiringPosition();
     // Moves the ball, keeping it constrained within the window bounds (except bottom edge); returns new position
