@@ -24,7 +24,7 @@ class EnemyObject : public GameObject
 public:
     // Enemy state
     GLfloat Radius;
-    GLint Strenght;
+    GLint Strength;
     GLint Type;
     GLint ScorePoints;
     GLint NumberOfShots;

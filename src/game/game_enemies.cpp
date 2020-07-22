@@ -74,7 +74,7 @@ void GameEnemies::Draw(SpriteRenderer& renderer)
     for (auto n : this->Enemies)
     {
         renderer.DrawSprite(n->Sprite, n->Position, n->Size, n->Rotation, n->Color); //render enemy
-        switch (n->Strenght) // render shields
+        switch (n->Strength) // render shields
         {
         case 10:
             renderer.DrawSprite(ResourceManager::GetTexture("shield"), n->Position - n->Size * 0.05f, n->Size * 1.1f, n->Rotation, glm::vec3(.5f, 1.0f, 1.0f));
@@ -211,7 +211,7 @@ void GameEnemies::UpdateShots(GLfloat dt, GLuint window_width, GLuint window_hei
 
 bool GameEnemies::Clean()
 {
-    auto last = std::remove_if(Enemies.begin(), Enemies.end(), [](EnemyObject* enemy)->bool {return enemy->Strenght < 1; });
+    auto last = std::remove_if(Enemies.begin(), Enemies.end(), [](EnemyObject* enemy)->bool {return enemy->Strength < 1; });
     if (last == Enemies.end())
     {
         return false;

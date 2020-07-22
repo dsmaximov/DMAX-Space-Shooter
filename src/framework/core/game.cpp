@@ -128,6 +128,8 @@ void Game::Init()
     ResourceManager::LoadTexture("res/textures/enemy3.png", GL_TRUE, "enemy3");
     ResourceManager::LoadTexture("res/textures/enemy4.png", GL_TRUE, "enemy4");
     ResourceManager::LoadTexture("res/textures/enemy5.png", GL_TRUE, "enemy5");
+    ResourceManager::LoadTexture("res/textures/turret0.png", GL_TRUE, "turret0");
+    ResourceManager::LoadTexture("res/textures/turret1.png", GL_TRUE, "turret1");
     ResourceManager::LoadTexture("res/textures/particle.png", GL_TRUE, "particle");
     ResourceManager::LoadTexture("res/textures/explosion.png", GL_TRUE, "explosion");
     ResourceManager::LoadTexture("res/textures/shield_hit.png", GL_TRUE, "shield_hit");
@@ -268,7 +270,7 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
         }
         EndLevelFadeoutSize += dt * PulseCoeff;
     }
-    if (this->State == GAME_ACTIVE)
+    if (this->State == GAME_ACTIVE || this->State == GAME_BOSS)
     {
         this->DoCollisions();
         if (this->Shields == 0)        //Player dead
@@ -463,7 +465,7 @@ void Game::ProcessInput(GLfloat dt)
     {
 
     }
-    if (this->State == GAME_ACTIVE || this->State == GAME_LEVEL_COMPLETE)
+    if (this->State == GAME_ACTIVE || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_BOSS)
     {
         GLfloat velocity = PLAYER_VELOCITY * dt;
         // Move playerboard
@@ -835,16 +837,16 @@ void Game::DoCollisions()
             if (CheckCollisionShotEnemy(*(*ShotIterator), *(*EnemyIterator)))
             {
                 int temp = (*ShotIterator)->Power;
-                (*ShotIterator)->Power -= (*EnemyIterator)->Strenght;
-                (*EnemyIterator)->Strenght -= temp;
-                if ((*EnemyIterator)->Strenght > 0)
+                (*ShotIterator)->Power -= (*EnemyIterator)->Strength;
+                (*EnemyIterator)->Strength -= temp;
+                if ((*EnemyIterator)->Strength > 0)
                 {
                     SoundEngineGame->play2D("res/audio/shieldhit.wav", GL_FALSE); //if enemy has shields
                     ShieldHitParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("shield_hit"), 500,
                         *(*ShotIterator), 2, glm::vec2(0, 0), glm::vec4(0.0f, 0.5f, 1.0f, 1.0f), 0.4f));
 
                 }
-                if ((*EnemyIterator)->Strenght == 0)
+                if ((*EnemyIterator)->Strength == 0)
                 {
                     ExplosionParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
                         *(*EnemyIterator), 2, (*EnemyIterator)->Size / 2.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), 0.7f));
@@ -881,13 +883,59 @@ void Game::DoCollisions()
     }
     if (AllGameEnemies->Clean()) SoundEngineGame->play2D("res/audio/boom.wav", GL_FALSE);
 
+    //Collisions between player shots and boss
+        if (this->State == GAME_BOSS)
+    {
+        for (auto EnemyIterator = Boss->BossTurrets.begin(); EnemyIterator != Boss->BossTurrets.end(); EnemyIterator++)
+        {
+            for (auto ShotIterator = AllPlayerShots->Shots.begin(); ShotIterator != AllPlayerShots->Shots.end(); ShotIterator++)
+            {
+                if (CheckCollisionShotEnemy(*(*ShotIterator), *(*EnemyIterator)))
+                {
+                    int temp = (*ShotIterator)->Power;
+                    (*ShotIterator)->Power -= (*EnemyIterator)->Strength;
+                    Boss->Strength -= temp;
+                    if (Boss->Strength > 0)
+                    {
+                        SoundEngineGame->play2D("res/audio/shieldhit.wav", GL_FALSE); //if enemy has shields
+                        ShieldHitParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("shield_hit"), 500,
+                            *(*ShotIterator), 2, glm::vec2(0, 0), glm::vec4(0.0f, 0.5f, 1.0f, 1.0f), 0.4f));
+
+                    }
+                    if (Boss->Strength <= 0)
+                    {
+                        ExplosionParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
+                            *(*EnemyIterator), 2, (*EnemyIterator)->Size / 2.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), 0.7f));
+                        Score += (*EnemyIterator)->ScorePoints;
+                    }
+                }
+            }
+            AllPlayerShots->Clean();
+        }
+    }
+
     //Collisions between player and enemies
     for (auto EnemyIterator = AllGameEnemies->Enemies.begin(); EnemyIterator != AllGameEnemies->Enemies.end(); EnemyIterator++)
     {
         if (CheckCollisionShipEnemy(*Ship, *(*EnemyIterator)) && !Ship->Invulnerable)
         {
             Score += (*EnemyIterator)->ScorePoints;
-            (*EnemyIterator)->Strenght = 0;
+            (*EnemyIterator)->Strength = 0;
+            if (Shields > 0)
+            {
+                Shields--;
+                Ship->Invulnerable = true;
+            }
+            ExplosionParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
+                *(*EnemyIterator), 2, (*EnemyIterator)->Size / 2.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), 0.7f));
+            SoundEngineGame->play2D("res/audio/boom.wav", GL_FALSE);
+        }
+    }
+    //Collisions between player and boss
+    for (auto EnemyIterator = Boss->BossTurrets.begin(); EnemyIterator != Boss->BossTurrets.end(); EnemyIterator++)
+    {
+        if (CheckCollisionShipEnemy(*Ship, *(*EnemyIterator)) && !Ship->Invulnerable)
+        {
             if (Shields > 0)
             {
                 Shields--;
@@ -901,6 +949,23 @@ void Game::DoCollisions()
 
     //Collisions between player and enemy shots
     for (auto EnemyShotIterator = AllGameEnemies->Shots.begin(); EnemyShotIterator != AllGameEnemies->Shots.end(); EnemyShotIterator++)
+    {
+        if (CheckCollisionShipShot(*Ship, *(*EnemyShotIterator)) && !Ship->Invulnerable)
+        {
+            if (Shields > 0)
+            {
+                Ship->Invulnerable = true;
+                Shields--;
+                (*EnemyShotIterator)->Power = 0;
+                SoundEngineGame->play2D("res/audio/player_hit.wav", GL_FALSE); //if ship has shields
+                ShieldHitParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("shield_hit"), 500,
+                    *(*EnemyShotIterator), 2, glm::vec2(0, 0), glm::vec4(0.9f, 0.7f, 0.6f, 1.0f), 0.6f));
+            }
+        }
+    }
+
+    //Collisions between player and boss shots
+    for (auto EnemyShotIterator = Boss->Shots.begin(); EnemyShotIterator != Boss->Shots.end(); EnemyShotIterator++)
     {
         if (CheckCollisionShipShot(*Ship, *(*EnemyShotIterator)) && !Ship->Invulnerable)
         {

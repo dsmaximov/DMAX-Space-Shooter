@@ -6,6 +6,10 @@ void BossObject::Init()
 {
 	InitialTime = std::chrono::steady_clock::now();
 	glm::vec2 pos(100.0f, -100.0f); //BOSS starting position
+	for (int i = 0; i < TURRETCOUNT0; i++)
+	{
+		this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + 50 + i * TURRETDISTANCE0, pos.y), TURRETRADIUS0, TURRETVELOCITY0, TURRETTEXTURE0, TURRETSTRENGHT0, SCOREPOINTS0, 0, 0, SHOTVELOCITY0));
+	}
 	for (int i = 0; i < TURRETCOUNT1; i++)
 	{
 		this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + i*TURRETDISTANCE1, pos.y), TURRETRADIUS1, TURRETVELOCITY1, TURRETTEXTURE1, TURRETSTRENGHT1, SCOREPOINTS1, 1, 1, SHOTVELOCITY1));
@@ -105,6 +109,7 @@ void BossObject::UpdateShots(GLfloat dt, GLuint window_width, GLuint window_heig
 }
 void BossObject::Draw(TextRenderer& trenderer, SpriteRenderer& renderer)
 {
+	std::string StrengthString = std::to_string(this->Strength);
 	std::string TimerString = std::to_string(BossTimer().count());
 	for (auto n : this->BossTurrets)
 	{
@@ -112,6 +117,7 @@ void BossObject::Draw(TextRenderer& trenderer, SpriteRenderer& renderer)
 	}
 
 	trenderer.RenderText(TimerString, 310.0f, 80.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
+	trenderer.RenderText(StrengthString, 310.0f, 120.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
 	for (auto n : this->Shots)
 	{
 		n->Draw(renderer);

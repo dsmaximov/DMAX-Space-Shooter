@@ -25,7 +25,7 @@ public:
 	void Move(GLfloat dt, GLuint window_width, GLuint window_height);
 
     std::vector <EnemyObject*> BossTurrets;
-    std::vector<ShotObject*> Shots;
+    std::vector <ShotObject*> Shots;
 private:
     std::chrono::duration<GLint> BossTimer();
     std::chrono::steady_clock::time_point InitialTime;
@@ -34,12 +34,22 @@ private:
 
     glm::vec2* ShipPosition;
 
+    //Turret 0 - structure
+    GLint         TURRETCOUNT0 = 9;
+    GLfloat         TURRETDISTANCE0 = 50.0f;
+    GLfloat       TURRETRADIUS0 = 30.0f;
+    glm::vec2     TURRETVELOCITY0 = glm::vec2(0.0f, 100.0f);
+    Texture2D* TURRETTEXTURE0 = ResourceManager::GetTexture("turret0");
+    GLint         TURRETSTRENGHT0 = 10;
+    GLint         SCOREPOINTS0 = 0;
+    GLfloat       SHOTRADIUS0 = 0.0f;
+    glm::vec2     SHOTVELOCITY0 = glm::vec2(0.0f, 0.0f);
     //Turret 1
     GLint         TURRETCOUNT1 = 4;
     GLfloat         TURRETDISTANCE1 = 170.0f;
     GLfloat       TURRETRADIUS1 = 30.0f;
     glm::vec2     TURRETVELOCITY1 = glm::vec2(0.0f, 100.0f);
-    Texture2D*    TURRETTEXTURE1 = ResourceManager::GetTexture("enemy1");
+    Texture2D*    TURRETTEXTURE1 = ResourceManager::GetTexture("turret1");
     GLint         TURRETSTRENGHT1 = 10;
     GLint         SCOREPOINTS1 = 10;
     GLfloat       SHOTRADIUS1 = 5.0f;
