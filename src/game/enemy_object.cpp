@@ -13,7 +13,7 @@ EnemyObject::EnemyObject()
 
 EnemyObject::EnemyObject(glm::vec2 pos, GLfloat radius, glm::vec2 velocity, Texture2D* sprite, GLint strenght, GLint scorepoints, GLint type, GLint number_of_shots, glm::vec2 shot_velocity)
     : GameObject(pos, glm::vec2(radius * 2, radius * 2), sprite, glm::vec3(1.0f), velocity), Radius(radius), Strength(strenght), ScorePoints(scorepoints), 
-    Type(type), NumberOfShots(number_of_shots), ShotVelocity(shot_velocity) { }
+    Type(type), NumberOfShots(number_of_shots), ShotTaken(false), ShotVelocity(shot_velocity) { }
 
 
 glm::vec2 EnemyObject::FiringPosition()

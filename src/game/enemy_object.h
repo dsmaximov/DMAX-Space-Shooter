@@ -28,6 +28,7 @@ public:
     GLint Type;
     GLint ScorePoints;
     GLint NumberOfShots;
+    GLboolean ShotTaken;
     glm::vec2 ShotVelocity;
     // Constructor(s)
     EnemyObject();

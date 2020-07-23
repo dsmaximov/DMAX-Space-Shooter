@@ -36,7 +36,7 @@ private:
 
     //Turret 0 - structure
     GLint         TURRETCOUNT0 = 9;
-    GLfloat         TURRETDISTANCE0 = 50.0f;
+    GLfloat         TURRETDISTANCE0 = 60.0f;
     GLfloat       TURRETRADIUS0 = 30.0f;
     glm::vec2     TURRETVELOCITY0 = glm::vec2(0.0f, 100.0f);
     Texture2D* TURRETTEXTURE0 = ResourceManager::GetTexture("turret0");
@@ -59,11 +59,11 @@ private:
     GLfloat         TURRETDISTANCE2 = 170.0f;
     GLfloat       TURRETRADIUS2 = 30.0f;
     glm::vec2     TURRETVELOCITY2 = glm::vec2(0.0f, 100.0f);
-    Texture2D*    TURRETTEXTURE2 = ResourceManager::GetTexture("enemy2");
+    Texture2D*    TURRETTEXTURE2 = ResourceManager::GetTexture("turret2");
     GLint         TURRETSTRENGHT2 = 10;
     GLint         SCOREPOINTS2 = 20;
     GLfloat       SHOTRADIUS2 = 5.0f;
-    glm::vec2     SHOTVELOCITY2 = glm::vec2(0.0f, 200.0f);
+    glm::vec2     SHOTVELOCITY2 = glm::vec2(100.0f, 200.0f);
 
     bool RightReached = false; //used to control oscillating movement in X
     bool LeftReached = true;

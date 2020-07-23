@@ -130,6 +130,7 @@ void Game::Init()
     ResourceManager::LoadTexture("res/textures/enemy5.png", GL_TRUE, "enemy5");
     ResourceManager::LoadTexture("res/textures/turret0.png", GL_TRUE, "turret0");
     ResourceManager::LoadTexture("res/textures/turret1.png", GL_TRUE, "turret1");
+    ResourceManager::LoadTexture("res/textures/turret2.png", GL_TRUE, "turret2");
     ResourceManager::LoadTexture("res/textures/particle.png", GL_TRUE, "particle");
     ResourceManager::LoadTexture("res/textures/explosion.png", GL_TRUE, "explosion");
     ResourceManager::LoadTexture("res/textures/shield_hit.png", GL_TRUE, "shield_hit");
