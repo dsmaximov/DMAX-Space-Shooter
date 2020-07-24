@@ -17,7 +17,7 @@
 class BossObject
 {
 public:
-	GLuint Strength;
+	GLint Strength;
     GLuint Stage;
 	BossObject(glm::vec2* ship_position);
 	void Init();
@@ -67,5 +67,7 @@ private:
 
     bool RightReached = false; //used to control oscillating movement in X
     bool LeftReached = true;
+    bool BottomReached = false; //used to control oscillating movement in Y
+    bool TopReached = true;
 };
 #endif

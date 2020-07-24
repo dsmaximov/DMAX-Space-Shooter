@@ -58,7 +58,7 @@ typedef std::tuple<GLboolean, Direction, glm::vec2> Collision; // <collision?, w
 // Initial size of the player paddle
 const glm::vec2 PLAYER_SIZE(85, 85);
 // Initial velocity of the player paddle
-const GLfloat PLAYER_VELOCITY(500.0f);
+const GLfloat PLAYER_VELOCITY(350.0f);
 // Initial velocity of the Ball
 const glm::vec2 INITIAL_BALL_VELOCITY(0.0f, -1350.0f);
 // Radius of the ball object

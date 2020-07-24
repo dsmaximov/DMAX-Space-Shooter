@@ -70,21 +70,23 @@ std::chrono::duration<GLint> BossObject::BossTimer()
 }
 void BossObject::Move(GLfloat dt, GLuint window_width, GLuint window_height)
 {
-	// initial movement into the screen
-	GLint InitialTimerX = 3;
-	if (BossTimer().count() < InitialTimerX) // initial movement into the screen
+	GLint TimerStage0 = 3;
+	GLint TimerStage2 = 10;
+	switch (this->Stage)
 	{
+	case 0: 	// initial movement into the screen
+		if (BossTimer().count() >= TimerStage0) this->Stage = 1;
+		break;
+	case 1: 	// initial movement into the screen
 		for (auto n : BossTurrets)
 		{
 			GLfloat InitialBossVelocityY = 50.0f;
 			n->Position.y += dt * InitialBossVelocityY;
 		}
-	}
-
-	// wobbling in x
-	else
-	{
-		this->Stage = 1;
+		if (this->BossTurrets[0]->Position.y > 50) this->Stage = 2;
+		break;
+	case 2:
+		// wobbling in x
 		for (auto n : BossTurrets)
 		{
 			GLfloat InitialBossVelocityX = 50.0f;
@@ -93,7 +95,7 @@ void BossObject::Move(GLfloat dt, GLuint window_width, GLuint window_height)
 		}
 		for (auto n : BossTurrets)
 		{
-			if (n->Position.x + n->Radius*2 > window_width)
+			if (n->Position.x + n->Radius * 2 > window_width)
 			{
 				RightReached = true;
 				LeftReached = false;
@@ -107,6 +109,43 @@ void BossObject::Move(GLfloat dt, GLuint window_width, GLuint window_height)
 				LeftReached = true;
 			}
 		}
+		if (BossTimer().count() >= TimerStage2) this->Stage = 3;
+		break;
+	case 3:
+		// wobbling in x & y
+		for (auto n : BossTurrets)
+		{
+			GLfloat InitialBossVelocityX = 60.0f;
+			GLfloat InitialBossVelocityY = 60.0f;
+			if (LeftReached) n->Position.x += dt * InitialBossVelocityX;
+			if (RightReached) n->Position.x -= dt * InitialBossVelocityX;
+			if (TopReached) n->Position.y += dt * 2 * InitialBossVelocityY;
+			if (BottomReached) n->Position.y -= dt * InitialBossVelocityY;
+		}
+		for (auto n : BossTurrets)
+		{
+			if (n->Position.x + n->Radius * 2 > window_width)
+			{
+				RightReached = true;
+				LeftReached = false;
+			}
+			if (n->Position.x < 0)
+			{
+				RightReached = false;
+				LeftReached = true;
+			}
+			if (n->Position.y + n->Radius * 2 > window_height / 2)
+			{
+				BottomReached = true;
+				TopReached = false;
+			}
+			if (n->Position.y < 50)
+			{
+				BottomReached = false;
+				TopReached = true;
+			}
+		}
+		break;
 	}
 	UpdateShots(dt, window_width, window_height);
 }
@@ -114,34 +153,71 @@ void BossObject::UpdateShots(GLfloat dt, GLuint window_width, GLuint window_heig
 {
 	for (auto n : this->BossTurrets)
 	{
-		switch (n->Type)
+		switch (this->Stage)
 		{
-		case 2:
+		case 2: //BOSS stage 2 shots
 		{
+			switch (n->Type)
+			{
+			case 2:
+			{
+				if (this->Stage > 0 && BossTimer().count() % 3 == 0 && !n->ShotTaken)
+				{
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - SHOTRADIUS2 * 2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(-SHOTVELOCITY2.x, SHOTVELOCITY2.y), ResourceManager::GetTexture("shot1")));
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x + SHOTRADIUS2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, SHOTVELOCITY2, ResourceManager::GetTexture("shot1")));
+					n->ShotTaken = true;
+				}
+				if (BossTimer().count() % 3 != 0) n->ShotTaken = false;
+				break;
+			}
+			case 1:
+				GLfloat Speed = sqrt(SHOTVELOCITY1.x * SHOTVELOCITY1.x + SHOTVELOCITY1.y * SHOTVELOCITY1.y); //determine the magnitude of velocity
+				GLfloat DistX = ShipPosition->x - n->Position.x;
+				GLfloat DistY = ShipPosition->y - n->Position.y;
+				glm::vec2 Direction = glm::vec2(DistX / sqrt(DistX * DistX + DistY * DistY), DistY / sqrt(DistX * DistX + DistY * DistY)); //determine the direction of velocity - aim towards the ship
+				glm::vec2 ShotVelocity1 = glm::vec2(Speed * Direction);
+				if (this->Stage > 0 && BossTimer().count() % 2 == 0 && n->ShotTaken == false)
+				{
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS1, 1, ShotVelocity1, ResourceManager::GetTexture("shot1")));
+					n->ShotTaken = true;
+				}
+				if (BossTimer().count() % 2 != 0) n->ShotTaken = false;
+				break;
+			}
+		}
+		case 3:
+			switch (n->Type)
+			{
+			case 2:
+			{
+				if (this->Stage > 0 && BossTimer().count() % 3 == 0 && !n->ShotTaken)
+				{
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - SHOTRADIUS2 * 2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(-SHOTVELOCITY2.x, 0.7f * SHOTVELOCITY2.y), ResourceManager::GetTexture("shot1")));
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x + SHOTRADIUS2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(SHOTVELOCITY2.x, 0.7f * SHOTVELOCITY2.y), ResourceManager::GetTexture("shot1")));
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - SHOTRADIUS2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(0.0f, SHOTVELOCITY2.y), ResourceManager::GetTexture("shot1")));
+					n->ShotTaken = true;
+				}
+				if (BossTimer().count() % 3 != 0) n->ShotTaken = false;
+				break;
+			}
+			case 1:
+				GLfloat Speed = sqrt(SHOTVELOCITY1.x * SHOTVELOCITY1.x + SHOTVELOCITY1.y * SHOTVELOCITY1.y); //determine the magnitude of velocity
+				GLfloat DistX = ShipPosition->x - n->Position.x;
+				GLfloat DistY = ShipPosition->y - n->Position.y;
+				glm::vec2 Direction = glm::vec2(DistX / sqrt(DistX * DistX + DistY * DistY), DistY / sqrt(DistX * DistX + DistY * DistY)); //determine the direction of velocity - aim towards the ship
+				glm::vec2 ShotVelocity1 = glm::vec2(Speed * Direction);
+				if (this->Stage > 0 && BossTimer().count() % 2 == 0 && n->ShotTaken == false)
+				{
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS1, 1, ShotVelocity1, ResourceManager::GetTexture("shot1")));
+					n->ShotTaken = true;
+				}
+				if (BossTimer().count() % 2 != 0) n->ShotTaken = false;
+				break;
+			}
+			break;
+		}
 
-			if (this->Stage > 0 && BossTimer().count() % 3 == 0 && !n->ShotTaken)
-			{
-				Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - SHOTRADIUS2 * 2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(-SHOTVELOCITY2.x, SHOTVELOCITY2.y), ResourceManager::GetTexture("shot1")));
-				Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x + SHOTRADIUS2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, SHOTVELOCITY2, ResourceManager::GetTexture("shot1")));
-				n->ShotTaken = true;
-			}
-			if (BossTimer().count() % 3 != 0) n->ShotTaken = false;
-			break;
-		}
-		case 1:
-			GLfloat Speed = sqrt(SHOTVELOCITY1.x * SHOTVELOCITY1.x + SHOTVELOCITY1.y * SHOTVELOCITY1.y); //determine the magnitude of velocity
-			GLfloat DistX = ShipPosition->x - n->Position.x;
-			GLfloat DistY = ShipPosition->y - n->Position.y;
-			glm::vec2 Direction = glm::vec2(DistX / sqrt(DistX * DistX + DistY * DistY), DistY / sqrt(DistX * DistX + DistY * DistY)); //determine the direction of velocity - aim towards the ship
-			glm::vec2 ShotVelocity1 = glm::vec2(Speed * Direction);
-			if (this->Stage > 0 && BossTimer().count() % 2 == 0 && n->ShotTaken == false)
-			{
-				Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS1, 1, ShotVelocity1, ResourceManager::GetTexture("shot1")));
-				n->ShotTaken = true;
-			}
-			if (BossTimer().count() % 2 != 0) n->ShotTaken = false;
-			break;
-		}
+
 	}
 	for (auto n : Shots)
 	{
@@ -161,13 +237,26 @@ void BossObject::UpdateShots(GLfloat dt, GLuint window_width, GLuint window_heig
 }
 void BossObject::Draw(TextRenderer& trenderer, SpriteRenderer& renderer)
 {
-	std::string StrengthString = std::to_string(this->Strength);
-	std::string TimerString = std::to_string(BossTimer().count());
 	for (auto n : this->BossTurrets)
 	{
 		renderer.DrawSprite(n->Sprite, n->Position, n->Size, n->Rotation, n->Color);
 	}
-
+	switch (this->Stage)
+	{
+	case 0:
+		trenderer.RenderText("WARNING!", 330.0f, 250.0f, 1.0f, glm::vec3(.9f, .1f, .1f));
+		trenderer.RenderText("LARGE MASS DETECTED", 250.0f, 280.0f, 1.0f, glm::vec3(.9f, .1f, .1f));
+		break;
+	default:
+		trenderer.RenderText("Boss: ", 5.0f, 30.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
+		GLfloat BossShieldSizeSprite = 2.0f;
+		for (GLint i = 0; i < this->Strength; i++)
+		{
+			renderer.DrawSprite(ResourceManager::GetTexture("player_shields"), glm::vec2(95.0f + i * BossShieldSizeSprite, 30.0f), glm::vec2(BossShieldSizeSprite, 20.0f));
+		}
+	}
+	std::string StrengthString = std::to_string(this->Strength);
+	std::string TimerString = std::to_string(BossTimer().count());
 	trenderer.RenderText(TimerString, 310.0f, 80.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
 	trenderer.RenderText(StrengthString, 310.0f, 120.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
 	for (auto n : this->Shots)
