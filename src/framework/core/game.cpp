@@ -271,6 +271,19 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
         }
         EndLevelFadeoutSize += dt * PulseCoeff;
     }
+    if (this->State == GAME_BOSS)
+    {
+        for (auto n : Boss->BossTurrets)
+        {
+            if (n->Strength < 1)
+            {
+                ExplosionParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
+                    *n, 2, n->Size / 2.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), 0.7f));
+            }
+        }
+        if (Boss->Clean() == true) SoundEngineGame->play2D("res/audio/player_boom.wav", GL_FALSE);
+
+    }
     if (this->State == GAME_ACTIVE || this->State == GAME_BOSS)
     {
         this->DoCollisions();
@@ -905,14 +918,15 @@ void Game::DoCollisions()
                     }
                     if (Boss->Strength <= 0)
                     {
-                        ExplosionParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
-                            *(*EnemyIterator), 2, (*EnemyIterator)->Size / 2.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), 0.7f));
-                        Score += (*EnemyIterator)->ScorePoints;
+                        //ExplosionParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
+                        //    *(*EnemyIterator), 2, (*EnemyIterator)->Size / 2.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), 0.7f));
+                        //Score += (*EnemyIterator)->ScorePoints;
                     }
                 }
             }
             AllPlayerShots->Clean();
         }
+
     }
 
     //Collisions between player and enemies

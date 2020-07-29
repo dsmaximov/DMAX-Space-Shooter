@@ -1,33 +1,13 @@
 #include "boss_object.h"
 
+
+
 BossObject::BossObject(glm::vec2* ship_position)
-	:ShipPosition(ship_position), Strength(100), Stage(0){}
+	:ShipPosition(ship_position), Strength(10), Stage(0){}
 void BossObject::Init()
 {
 	InitialTime = std::chrono::steady_clock::now();
 	glm::vec2 pos(0.0f, -100.0f); //BOSS starting position
-
-	//BOSS turret coordinate constants
-	const GLfloat DistanceBetweenRows = 40.0f;
-	const int StructureCountRow0 = 6;
-	const GLfloat StructureStartRow0 = 220.0;
-	const GLfloat StructureSpacingRow0 = 60.0;
-	const int StructureCountRow1 = 7;
-	const GLfloat StructureStartRow1 = 190.0;
-	const GLfloat StructureSpacingRow1 = 60.0;
-	const int StructureCountRow2 = 2;
-	const GLfloat StructureStartRow2 = 175.0;
-	const GLfloat StructureSpacingRow2 = 395.0;
-	const int StructureCountRow3 = 5; //intermediate row
-	const GLfloat StructureStartRow3 = 250.0;
-	const GLfloat StructureSpacingRow3 = 60.0;
-	const int TurretCount1 = 4;
-	const GLfloat TurretStart1 = 191.0;
-	const GLfloat TurretSpacing1 = 120.0;
-	const int TurretCount2 = 3;
-	const GLfloat TurretStart2 = 227.0;
-	const GLfloat TurretSpacing2 = 146.0;
-
 	//set up all BOSS structure
 
 	for (int i = 0; i < StructureCountRow0; i++)
@@ -145,6 +125,51 @@ void BossObject::Move(GLfloat dt, GLuint window_width, GLuint window_height)
 				TopReached = true;
 			}
 		}
+		if (this->Strength < 1) this->Stage = 4;
+		break;
+	case 4:
+		
+		for (auto it = this->BossTurrets.begin(); it != this->BossTurrets.end(); it++)
+		{
+			if ((*it)->Type < 1)
+			{
+				(*it)->Strength = 0;
+			}
+		}
+
+		//for (int i = 0; i < StructureCountRow0; i++)
+		//{
+		//	this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + StructureStartRow0 + i * StructureSpacingRow0, pos.y),
+		//		TURRETRADIUS0, TURRETVELOCITY0, TURRETTEXTURE0, TURRETSTRENGHT0, SCOREPOINTS0, 0, 0, SHOTVELOCITY0));
+		//}
+		//for (int i = 0; i < StructureCountRow1; i++)
+		//{
+		//	this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + StructureStartRow1 + i * StructureSpacingRow1, pos.y + DistanceBetweenRows),
+		//		TURRETRADIUS0, TURRETVELOCITY0, TURRETTEXTURE0, TURRETSTRENGHT0, SCOREPOINTS0, 0, 0, SHOTVELOCITY0));
+		//}
+		//for (int i = 0; i < StructureCountRow2; i++)
+		//{
+		//	this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + StructureStartRow2 + i * StructureSpacingRow2, pos.y + DistanceBetweenRows * 2),
+		//		TURRETRADIUS0, TURRETVELOCITY0, TURRETTEXTURE0, TURRETSTRENGHT0, SCOREPOINTS0, 0, 0, SHOTVELOCITY0));
+		//}
+		//for (int i = 0; i < StructureCountRow3; i++) //intermediate row
+		//{
+		//	this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + StructureStartRow3 + i * StructureSpacingRow3, pos.y + DistanceBetweenRows / 2),
+		//		TURRETRADIUS0, TURRETVELOCITY0, TURRETTEXTURE0, TURRETSTRENGHT0, SCOREPOINTS0, 0, 0, SHOTVELOCITY0));
+		//}
+		//for (int i = 0; i < TurretCount1; i++)
+		//{
+		//	this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + TurretStart1 + i * TurretSpacing1, pos.y + DistanceBetweenRows),
+		//		TURRETRADIUS1, TURRETVELOCITY1, TURRETTEXTURE1, TURRETSTRENGHT1, SCOREPOINTS1, 1, 1, SHOTVELOCITY1));
+		//}
+		//for (int i = 0; i < TurretCount2; i++)
+		//{
+		//	this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + TurretStart2 + i * TurretSpacing2, pos.y + DistanceBetweenRows * 2 - 10),
+		//		TURRETRADIUS2, TURRETVELOCITY2, TURRETTEXTURE2, TURRETSTRENGHT2, SCOREPOINTS2, 2, 1, SHOTVELOCITY2));
+		//}
+
+		//Explosions.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("shield_hit"), 500,
+		//	*(*ShotIterator), 2, glm::vec2(0, 0), glm::vec4(0.0f, 0.5f, 1.0f, 1.0f), 0.4f));
 		break;
 	}
 	UpdateShots(dt, window_width, window_height);
@@ -262,5 +287,22 @@ void BossObject::Draw(TextRenderer& trenderer, SpriteRenderer& renderer)
 	for (auto n : this->Shots)
 	{
 		n->Draw(renderer);
+	}
+	for (auto n : this->Explosions)
+	{
+		n->Draw();
+	}
+}
+bool BossObject::Clean()
+{
+	auto last = std::remove_if(this->BossTurrets.begin(), this->BossTurrets.end(), [](EnemyObject* enemy)->bool {return enemy->Strength < 1; });
+	if (last == this->BossTurrets.end())
+	{
+		return false;
+	}
+	else
+	{
+		this->BossTurrets.erase(last, this->BossTurrets.end());
+		return true;
 	}
 }
