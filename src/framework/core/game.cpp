@@ -112,6 +112,7 @@ void Game::Init()
     ResourceManager::LoadTexture("res/textures/end_level_fadeout_solid.png", GL_TRUE, "end_level_fadeout_solid");
     ResourceManager::LoadTexture("res/textures/awesomeface.png", GL_TRUE, "face");
     ResourceManager::LoadTexture("res/textures/shot1.png", GL_TRUE, "shot1");
+    ResourceManager::LoadTexture("res/textures/laser.png", GL_TRUE, "laser");
     ResourceManager::LoadTexture("res/textures/ship_shot0.png", GL_TRUE, "ship_shot0");
     ResourceManager::LoadTexture("res/textures/ship_shot1L.png", GL_TRUE, "ship_shot1L");
     ResourceManager::LoadTexture("res/textures/ship_shot1C.png", GL_TRUE, "ship_shot1C");

@@ -21,6 +21,7 @@ using namespace irrklang;
 class BossObject
 {
 public:
+    const GLint InitialStrenght = 10;
 	GLint Strength;
     GLuint Stage;
 	BossObject(glm::vec2* ship_position);
@@ -30,7 +31,6 @@ public:
     bool Clean();
     std::vector <EnemyObject*> BossTurrets;
     std::vector <ShotObject*> Shots;
-    std::vector <ParticleGeneratorExplosion*>Explosions;
     ISoundEngine* SoundEngineBoss = createIrrKlangDevice();
 
     //BOSS turret coordinate constants
@@ -55,6 +55,7 @@ public:
     const GLfloat TurretSpacing2 = 146.0;
 
 private:
+    GLfloat Stage6Angle;
     std::chrono::duration<GLint> BossTimer();
     std::chrono::steady_clock::time_point InitialTime;
     std::chrono::steady_clock::time_point CurrentTime;

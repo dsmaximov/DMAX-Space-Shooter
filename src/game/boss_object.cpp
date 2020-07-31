@@ -3,7 +3,7 @@
 
 
 BossObject::BossObject(glm::vec2* ship_position)
-	:ShipPosition(ship_position), Strength(10), Stage(0){}
+	:ShipPosition(ship_position), Strength(InitialStrenght), Stage(0), Stage6Angle(0){}
 void BossObject::Init()
 {
 	InitialTime = std::chrono::steady_clock::now();
@@ -125,51 +125,51 @@ void BossObject::Move(GLfloat dt, GLuint window_width, GLuint window_height)
 				TopReached = true;
 			}
 		}
-		if (this->Strength < 1) this->Stage = 4;
+		if (this->Strength < InitialStrenght / 2) this->Stage = 4;
 		break;
 	case 4:
-		
-		for (auto it = this->BossTurrets.begin(); it != this->BossTurrets.end(); it++)
+	{
+		std::vector <GLint> DestroyedTurrets{ 0,1,4,5, 20, 23, 25 };
+		for (auto it = DestroyedTurrets.begin(); it != DestroyedTurrets.end(); it++)
 		{
-			if ((*it)->Type < 1)
-			{
-				(*it)->Strength = 0;
-			}
+			this->BossTurrets[*it]->Strength = 0;
 		}
+		this->Stage = 5;
+		break;
+	}
+	case 5:
+	{
+		GLfloat Stage6StartingPositionX = 150;
+		if (this->BossTurrets[0]->Position.x >= Stage6StartingPositionX)
+		{
+			for (auto n : BossTurrets)
+			{
 
-		//for (int i = 0; i < StructureCountRow0; i++)
-		//{
-		//	this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + StructureStartRow0 + i * StructureSpacingRow0, pos.y),
-		//		TURRETRADIUS0, TURRETVELOCITY0, TURRETTEXTURE0, TURRETSTRENGHT0, SCOREPOINTS0, 0, 0, SHOTVELOCITY0));
-		//}
-		//for (int i = 0; i < StructureCountRow1; i++)
-		//{
-		//	this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + StructureStartRow1 + i * StructureSpacingRow1, pos.y + DistanceBetweenRows),
-		//		TURRETRADIUS0, TURRETVELOCITY0, TURRETTEXTURE0, TURRETSTRENGHT0, SCOREPOINTS0, 0, 0, SHOTVELOCITY0));
-		//}
-		//for (int i = 0; i < StructureCountRow2; i++)
-		//{
-		//	this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + StructureStartRow2 + i * StructureSpacingRow2, pos.y + DistanceBetweenRows * 2),
-		//		TURRETRADIUS0, TURRETVELOCITY0, TURRETTEXTURE0, TURRETSTRENGHT0, SCOREPOINTS0, 0, 0, SHOTVELOCITY0));
-		//}
-		//for (int i = 0; i < StructureCountRow3; i++) //intermediate row
-		//{
-		//	this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + StructureStartRow3 + i * StructureSpacingRow3, pos.y + DistanceBetweenRows / 2),
-		//		TURRETRADIUS0, TURRETVELOCITY0, TURRETTEXTURE0, TURRETSTRENGHT0, SCOREPOINTS0, 0, 0, SHOTVELOCITY0));
-		//}
-		//for (int i = 0; i < TurretCount1; i++)
-		//{
-		//	this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + TurretStart1 + i * TurretSpacing1, pos.y + DistanceBetweenRows),
-		//		TURRETRADIUS1, TURRETVELOCITY1, TURRETTEXTURE1, TURRETSTRENGHT1, SCOREPOINTS1, 1, 1, SHOTVELOCITY1));
-		//}
-		//for (int i = 0; i < TurretCount2; i++)
-		//{
-		//	this->BossTurrets.push_back(new EnemyObject(glm::vec2(pos.x + TurretStart2 + i * TurretSpacing2, pos.y + DistanceBetweenRows * 2 - 10),
-		//		TURRETRADIUS2, TURRETVELOCITY2, TURRETTEXTURE2, TURRETSTRENGHT2, SCOREPOINTS2, 2, 1, SHOTVELOCITY2));
-		//}
-
-		//Explosions.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("shield_hit"), 500,
-		//	*(*ShotIterator), 2, glm::vec2(0, 0), glm::vec4(0.0f, 0.5f, 1.0f, 1.0f), 0.4f));
+				GLfloat InitialBossVelocityX = -150.0f;
+				n->Position.x += dt * InitialBossVelocityX;
+			}
+			if (this->BossTurrets[0]->Position.x < 150) this->Stage = 6;
+		}
+		else
+		{
+			for (auto n : BossTurrets)
+			{
+				GLfloat InitialBossVelocityX = 150.0f;
+				n->Position.x += dt * InitialBossVelocityX;
+			}
+			if (this->BossTurrets[0]->Position.x >= Stage6StartingPositionX) this->Stage = 6;
+		}
+	}
+		break;
+	case 6:
+		//circular motion
+		Stage6Angle += dt;
+		for (auto n : BossTurrets)
+		{
+			GLfloat InitialBossVelocityX = 100.0f;
+			n->Position.x += dt * InitialBossVelocityX * 2.0f * sin(Stage6Angle);
+			n->Position.y += dt * InitialBossVelocityX * cos(Stage6Angle);
+		}
 		break;
 	}
 	UpdateShots(dt, window_width, window_height);
@@ -240,6 +240,32 @@ void BossObject::UpdateShots(GLfloat dt, GLuint window_width, GLuint window_heig
 				break;
 			}
 			break;
+		case 6 :
+			switch (n->Type)
+			{
+			case 2:
+			{
+				if (this->Stage > 0 && BossTimer().count() % 3 == 0 && !n->ShotTaken)
+				{
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - SHOTRADIUS2 * 2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(-SHOTVELOCITY2.x, 0.7f * SHOTVELOCITY2.y), ResourceManager::GetTexture("shot1")));
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x + SHOTRADIUS2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(SHOTVELOCITY2.x, 0.7f * SHOTVELOCITY2.y), ResourceManager::GetTexture("shot1")));
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - SHOTRADIUS2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(0.0f, SHOTVELOCITY2.y), ResourceManager::GetTexture("shot1")));
+					n->ShotTaken = true;
+				}
+				if (BossTimer().count() % 3 != 0) n->ShotTaken = false;
+				break;
+			}
+			case 1:
+				if (BossTimer().count() % 2 == 0)
+				{
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS1+5.0f, 2, glm::vec2(0.0f, 1000.0f), ResourceManager::GetTexture("laser")));
+					if (!n->ShotTaken) SoundEngineBoss->play2D("res/audio/player_boom.wav", GL_FALSE);
+					n->ShotTaken = true;
+				}
+				if (BossTimer().count() % 2 != 0) n->ShotTaken = false;
+				break;
+			}
+			break;
 		}
 
 
@@ -262,10 +288,12 @@ void BossObject::UpdateShots(GLfloat dt, GLuint window_width, GLuint window_heig
 }
 void BossObject::Draw(TextRenderer& trenderer, SpriteRenderer& renderer)
 {
+	//draw boss structure (turrets)
 	for (auto n : this->BossTurrets)
 	{
 		renderer.DrawSprite(n->Sprite, n->Position, n->Size, n->Rotation, n->Color);
 	}
+	//draw messages
 	switch (this->Stage)
 	{
 	case 0:
@@ -284,13 +312,12 @@ void BossObject::Draw(TextRenderer& trenderer, SpriteRenderer& renderer)
 	std::string TimerString = std::to_string(BossTimer().count());
 	trenderer.RenderText(TimerString, 310.0f, 80.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
 	trenderer.RenderText(StrengthString, 310.0f, 120.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
+	//draw boss shots
 	for (auto n : this->Shots)
 	{
+		if (n->Power>1) glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 		n->Draw(renderer);
-	}
-	for (auto n : this->Explosions)
-	{
-		n->Draw();
+		if (n->Power > 1) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 }
 bool BossObject::Clean()
