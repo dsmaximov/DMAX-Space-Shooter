@@ -21,7 +21,7 @@ using namespace irrklang;
 class BossObject
 {
 public:
-    const GLint InitialStrenght = 10;
+    const GLint InitialStrenght = 700;
 	GLint Strength;
     GLuint Stage;
 	BossObject(glm::vec2* ship_position);

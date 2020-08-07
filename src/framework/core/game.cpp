@@ -36,12 +36,6 @@ using namespace irrklang;
 
 // Game-related State data
 SpriteRenderer    * Renderer;
-//GameObject        * Player;
-//BallObject        * Ball;
-//BallObject        * Ball_1;
-//ShotObject        * Shot;
-//std::vector <BallObject*> AllBalls;
-//std::vector <ShotObject*> AllShots;
 ShipObject        * Ship;
 BossObject        * Boss;
 ParticleGenerator * ParticlesEngineLeft;
@@ -55,7 +49,8 @@ ISoundEngine      * SoundEngineMenu = createIrrKlangDevice();
 GLfloat             ShakeTime = 0.0f;
 TextRenderer      * Text;
 GameShots         * AllPlayerShots;
-Background        * GameBackgound;
+Background        * GameBackground;
+Background        * Parralax;
 EnemyObject       * Enemy;
 GameEnemies       * AllGameEnemies;
 MenuButton* ButtonContinue;
@@ -70,6 +65,7 @@ std::vector <MenuButton*> AllMenuButtons;
 std::vector<PowerUp*>   PowerUps;
 int ActiveMenuButton;
 int NextPowerUp;
+int BossMusicFlag;
 glm::vec2 EndLevelFadeoutSize;
 Game::Game(GLuint width, GLuint height, GLuint scroll_speed)
         : State(GAME_MAIN_MENU), Keys(), KeysProcessed(), Width(width), Height(height), Level(1), ScrollSpeed(scroll_speed), KeyCode(0), PulseCoeff(1200.0f), PulseFlag(false), InvulCounter(0),
@@ -108,10 +104,15 @@ void Game::Init()
     ResourceManager::LoadTexture("res/textures/background2.jpg", GL_FALSE, "background2");
     ResourceManager::LoadTexture("res/textures/background3.jpg", GL_FALSE, "background3");
     ResourceManager::LoadTexture("res/textures/background4.jpg", GL_FALSE, "background4");
+    ResourceManager::LoadTexture("res/textures/parallax1.png", GL_TRUE, "parallax1");
+    ResourceManager::LoadTexture("res/textures/parallax2.png", GL_TRUE, "parallax2");
+    ResourceManager::LoadTexture("res/textures/parallax3.png", GL_TRUE, "parallax3");
+    ResourceManager::LoadTexture("res/textures/parallax4.png", GL_TRUE, "parallax4");
     ResourceManager::LoadTexture("res/textures/end_level_fadeout_alpha.png", GL_TRUE, "end_level_fadeout_alpha");
     ResourceManager::LoadTexture("res/textures/end_level_fadeout_solid.png", GL_TRUE, "end_level_fadeout_solid");
     ResourceManager::LoadTexture("res/textures/awesomeface.png", GL_TRUE, "face");
     ResourceManager::LoadTexture("res/textures/shot1.png", GL_TRUE, "shot1");
+    ResourceManager::LoadTexture("res/textures/shot2.png", GL_TRUE, "shot2");
     ResourceManager::LoadTexture("res/textures/laser.png", GL_TRUE, "laser");
     ResourceManager::LoadTexture("res/textures/ship_shot0.png", GL_TRUE, "ship_shot0");
     ResourceManager::LoadTexture("res/textures/ship_shot1L.png", GL_TRUE, "ship_shot1L");
@@ -203,7 +204,8 @@ void Game::Init()
     glm::vec2 ballPos_1 = glm::vec2(Ship->FiringPosition().x, Ship->FiringPosition().y - BALL_RADIUS);
     AllGameEnemies = new GameEnemies(&Ship->Position);
     AllPlayerShots = new GameShots();
-    GameBackgound = new Background(glm::vec2(0, 0), ResourceManager::GetTexture("background1"), Width, Height);
+    GameBackground = new Background(glm::vec2(0, 0), ResourceManager::GetTexture("background1"), Width, Height);
+    Parralax = new Background(glm::vec2(0, 0), ResourceManager::GetTexture("parallax1"), Width, Height);
     //Load enemies from file
     std::string LFString = "res/levels/" + std::to_string(Level) + ".lvl";
     const GLchar* LevelFile = LFString.c_str();
@@ -213,11 +215,11 @@ void Game::Init()
     ParticlesEngineLeft = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
     ParticlesEngineRight = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
     this->Score = 0;
-    this->Shields = 3;
+    this->Shields = InitialPlayerShields;
     NextPowerUp = 1;
     SoundEngineMenu->play2D("res/audio/Urban-Future.mp3", GL_TRUE);
     EndLevelFadeoutSize = glm::vec2(1.0f, 1.0f);
-    Boss->Init();
+    BossMusicFlag = 0;
 }
 void Game::ReInit()
 {
@@ -225,7 +227,7 @@ void Game::ReInit()
     AllMenuButtons.clear();
     this->Levels.clear();
     PowerUps.clear();
-    this->Shields = 3;
+    this->Shields = InitialPlayerShields;
     NextPowerUp = 1;
     this->Level = 1;
     PulseFlag = false;
@@ -252,8 +254,11 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
             PulseCoeff = -PulseCoeff;
             PulseFlag = true;
             std::string BCKString = "background" + std::to_string(Level+1); // set next level background
+            std::string PRLXString = "parallax" + std::to_string(Level + 1); // set next level parallax background eg. clouds
             const GLchar* BackgroundFile = BCKString.c_str();
-            GameBackgound = new Background(glm::vec2(0, 0), ResourceManager::GetTexture(BackgroundFile), Width, Height);
+            const GLchar* ParallaxFile = PRLXString.c_str();
+            GameBackground = new Background(glm::vec2(0, 0), ResourceManager::GetTexture(BackgroundFile), Width, Height);
+            Parralax = new Background(glm::vec2(0, 0), ResourceManager::GetTexture(ParallaxFile), Width, Height);
         }
         //fadeout pulse finished, start next level
         if (EndLevelFadeoutSize.x < 1.0f && PulseFlag)
@@ -283,7 +288,37 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
             }
         }
         if (Boss->Clean() == true) SoundEngineGame->play2D("res/audio/player_boom.wav", GL_FALSE);
-
+        Boss->Move(dt, this->Width, this->Height);
+        if (Boss->Stage == 10)
+        {
+            if (Score > HighScoresData->LowestEntry()) this->State = GAME_ENTER_INITIALS;
+            else this->State = GAME_WIN;
+        }
+        if (Boss->Strength < 1)
+        {
+            int VictoryExplHeight = rand() % this->Height - this->Height / 2;
+            int VictoryExplWidth = rand() % this->Width - this->Width / 2;
+            ExplosionParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
+                *Ship, 2, glm::vec2(VictoryExplWidth, VictoryExplHeight), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), 0.7f));
+            if (BossMusicFlag != 3)
+            {
+                BossMusicFlag = 3;
+                SoundEngineGame->stopAllSounds();
+                SoundEngineGame->play2D("res/audio/Victory.mp3", GL_TRUE);
+            }
+        }
+        if ((Boss->Stage < 4) && (BossMusicFlag < 1))
+        {
+            BossMusicFlag = 1;
+            SoundEngineGame->stopAllSounds();
+            SoundEngineGame->play2D("res/audio/BossStage1.mp3", GL_TRUE);
+        }
+        if ((Boss->Stage >= 4) && (BossMusicFlag < 2))
+        {
+            BossMusicFlag = 2;
+            SoundEngineGame->stopAllSounds();
+            SoundEngineGame->play2D("res/audio/BossStage2.mp3", GL_TRUE);
+        }
     }
     if (this->State == GAME_ACTIVE || this->State == GAME_BOSS)
     {
@@ -304,17 +339,22 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
                 this->State = GAME_ENTER_INITIALS;
             }
         }
-        if (AllGameEnemies->Enemies.empty() && this->Shields >0)
+        if (AllGameEnemies->Enemies.empty() && this->Shields >0 && PowerUps.empty())
         {
-            this->State = GAME_LEVEL_COMPLETE;
+            if (this->Level < 4) this->State = GAME_LEVEL_COMPLETE;
+            else if (!(this->State == GAME_BOSS)&&!(this->State == GAME_WIN)&&!(this->State == GAME_ENTER_INITIALS))
+            {
+                this->State = GAME_BOSS;
+                Boss->Init();
+            }
         }
     }
-    if (this->State == GAME_ACTIVE || this->State == GAME_BOSS || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS)
+    if (this->State == GAME_ACTIVE || this->State == GAME_BOSS || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS || this->State == GAME_WIN)
     {
-        GameBackgound->Move(dt, scroll_speed, Height, glm::vec2(0.0f, 0.0f));
+        GameBackground->Move(dt, scroll_speed, Height, glm::vec2(0.0f, 0.0f));
+        Parralax->Move(dt, scroll_speed + 50, Height, glm::vec2(0.0f, 0.0f));
         AllPlayerShots->Move(dt, this->Width, this->Height, glm::vec2(Ship->FiringPosition().x - BALL_RADIUS, Ship->FiringPosition().y - BALL_RADIUS));
         AllGameEnemies->Move(dt, this->Width, this->Height);
-        Boss->Move(dt, this->Width, this->Height);
         for (auto n : PowerUps)
         {
             n->Move(dt, 800);
@@ -362,6 +402,8 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
     ParticlesEngineRight->Update(dt, *Ship, 2, glm::vec2(0.66f * Ship->Size.x, Ship->Size.y));
     UpdateExplosionParticleEngines(ExplosionParticleEngines, dt);
     UpdateExplosionParticleEngines(ShieldHitParticleEngines, dt);
+    // Clear PowerUps
+    PowerUps.erase(std::remove_if(PowerUps.begin(), PowerUps.end(), [&screen_size](PowerUp* powerup)->bool {return powerup->Position.y > screen_size.y; }), PowerUps.end()); 
     // Update PowerUps
     this->UpdatePowerUps(dt);
     // Update Menu Buttons
@@ -370,7 +412,6 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
         n->Deactivate();
     }
     AllMenuButtons[ActiveMenuButton]->Activate();
-
 }
 
 
@@ -438,7 +479,7 @@ void Game::ProcessInput(GLfloat dt)
             if (ButtonNew->ButtonPressed)
             {
                 //this->State = GAME_ACTIVE;
-                this->State = GAME_BOSS;
+                this->State = GAME_ACTIVE;
                 this->ReInit();
                 this->Init();
                 SoundEngineMenu->stopAllSounds();
@@ -469,10 +510,10 @@ void Game::ProcessInput(GLfloat dt)
     }
     if (this->State == GAME_WIN)
     {
-        if (this->Keys[GLFW_KEY_ENTER])
+        if (this->Keys[GLFW_KEY_ENTER] || this->Keys[GLFW_KEY_SPACE])
         {
             this->KeysProcessed[GLFW_KEY_ENTER] = GL_TRUE;
-            Effects->Chaos = GL_FALSE;
+            this->KeysProcessed[GLFW_KEY_SPACE] = GL_TRUE;
             this->State = GAME_MAIN_MENU;
         }
     }
@@ -572,20 +613,17 @@ void Game::ProcessInput(GLfloat dt)
             this->KeysProcessed[GLFW_KEY_SPACE] = GL_TRUE;
         }
     }
-    //if (this->State == GAME_LOSE && this->Score > HighScoresData->LowestEntry())
-    //{
-
-    //}
 }
 
 void Game::Render()
 {
-    if (this->State == GAME_ACTIVE || this->State == GAME_BOSS || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS)
+    if (this->State == GAME_ACTIVE || this->State == GAME_BOSS || this->State == GAME_LEVEL_COMPLETE || this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS || this->State == GAME_WIN)
     {
         // Begin rendering to postprocessing quad
         Effects->BeginRender();
             // Draw background
-            GameBackgound->Draw(*Renderer);
+            GameBackground->Draw(*Renderer);
+            Parralax->Draw(*Renderer);
             // Draw player + player engines
             if (!(this->State == GAME_LOSE || this->State == GAME_ENTER_INITIALS))
             {
@@ -593,7 +631,7 @@ void Game::Render()
                 ParticlesEngineLeft->Draw();
                 ParticlesEngineRight->Draw();
             }
-            else
+            else if (!this->State == GAME_WIN)
             {
                 ParticlesEngineEnd->Draw();
             }
@@ -622,7 +660,6 @@ void Game::Render()
             }
             //draw all player shots
             AllPlayerShots->Draw(*Renderer);
-            Boss->Draw(*Text,*Renderer);
          // End rendering to postprocessing quad
         Effects->EndRender();
         // Render postprocessing quad
@@ -634,13 +671,17 @@ void Game::Render()
         for (int i = 0; i < Shields; i++) Renderer->DrawSprite(ResourceManager::GetTexture("player_shields"), glm::vec2(295.0f + i * 45.0f, 10.0f), glm::vec2(40.0f, 10.0f));
 
     }
+    if (this->State == GAME_BOSS)
+    {
+        Boss->Draw(*Text, *Renderer);
+    }
     if (this->State == GAME_LOSE)
     {
         Text->RenderText("GAME OVER", this->Width/2 - 115, this->Height / 2 - 100, 1.5f, glm::vec3(1.0f, 1.0f, .7f));
     }
     if (this->State == GAME_ENTER_INITIALS)
     {
-        Text->RenderText("GAME OVER", this->Width / 2 - 115, this->Height / 2 - 100, 1.5f, glm::vec3(1.0f, 1.0f, .7f));
+        //Text->RenderText("GAME OVER", this->Width / 2 - 115, this->Height / 2 - 100, 1.5f, glm::vec3(1.0f, 1.0f, .7f));
         HighScoresData->AddInitials(KeyCode, KeyAction, this->Score);
     }
     if (this->State == GAME_MAIN_MENU)
@@ -692,8 +733,9 @@ void Game::Render()
         Text->RenderText("Background, shots, powerups, explosions: me :)", this->Width / 2 - 300, this->Height / 2 - 190, .7f, glm::vec3(.9f, .9f, .3f));
         Text->RenderText("SOUNDS/MUSIC", this->Width / 2 - 112, this->Height / 2 - 140, .9f, glm::vec3(.9f, .9f, .3f));
         Text->RenderText("Menu Music: URBAN FUTURE by Eric Matyas www.soundimage.org", this->Width / 2 - 300, this->Height / 2 - 100, .7f, glm::vec3(.9f, .9f, .3f));
-        Text->RenderText("Game Music: Fesliyan Studios www.fesliyanstudios.com", this->Width / 2 - 300, this->Height / 2 - 80, .7f, glm::vec3(.9f, .9f, .3f));
-        Text->RenderText("Sound effects: www.freesound.org", this->Width / 2 - 300, this->Height / 2 - 60, .7f, glm::vec3(.9f, .9f, .3f));
+        Text->RenderText("Boss Music: BOSS BATTLE by Eric Matyas www.soundimage.org", this->Width / 2 - 300, this->Height / 2 - 80, .7f, glm::vec3(.9f, .9f, .3f));
+        Text->RenderText("Game Music: Fesliyan Studios www.fesliyanstudios.com", this->Width / 2 - 300, this->Height / 2 - 60, .7f, glm::vec3(.9f, .9f, .3f));
+        Text->RenderText("Sound effects: www.freesound.org", this->Width / 2 - 300, this->Height / 2 - 40, .7f, glm::vec3(.9f, .9f, .3f));
         
         
     }
@@ -704,8 +746,7 @@ void Game::Render()
     }
     if (this->State == GAME_WIN)
     {
-        Text->RenderText("You WON!!!", 320.0f, this->Height / 2 - 20.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-        Text->RenderText("Press ENTER to retry or ESC to quit", 130.0f, this->Height / 2, 1.0f, glm::vec3(1.0f, 1.0f, 0.0f));
+
     }
 }
 
@@ -718,8 +759,6 @@ void Game::ResetLevel()
         this->Levels[2].Load("res/levels/three.lvl", this->Width, this->Height * 0.5f);
     else if (this->Level == 3)
         this->Levels[3].Load("res/levels/four.lvl", this->Width, this->Height * 0.5f);
-
-    this->Shields = 3;
 }
 
 void Game::ResetPlayer()
@@ -868,25 +907,26 @@ void Game::DoCollisions()
                     Score += (*EnemyIterator)->ScorePoints;
                     if ((*EnemyIterator)->Type == 5) // drop powerup if enemy detroyed by shot
                     {
+                        glm::vec2 PwrCentering = glm::vec2((*EnemyIterator)->Radius - POWER_UP_SIZE.x / 2, (*EnemyIterator)->Radius - POWER_UP_SIZE.y / 2);
                         if (NextPowerUp % 4 == 0) //TODO create a variable to hold the texture and remove ifs
                         {
                             PowerUps.push_back(new PowerUp(NextPowerUp % 4, glm::vec3(1.0f, 1.0f, 1.0f), 
-                                (*EnemyIterator)->Position, glm::vec2(0.0f, 70.0f), POWER_UP_SIZE, ResourceManager::GetTexture("powerup_health")));
+                                (*EnemyIterator)->Position + PwrCentering, glm::vec2(0.0f, 70.0f), POWER_UP_SIZE, ResourceManager::GetTexture("powerup_health")));
                         }
                         if (NextPowerUp % 4 == 1)
                         {
                             PowerUps.push_back(new PowerUp(NextPowerUp % 4, glm::vec3(1.0f, 1.0f, 1.0f), 
-                                (*EnemyIterator)->Position, glm::vec2(0.0f, 70.0f), POWER_UP_SIZE, ResourceManager::GetTexture("powerup_power")));
+                                (*EnemyIterator)->Position + PwrCentering, glm::vec2(0.0f, 70.0f), POWER_UP_SIZE, ResourceManager::GetTexture("powerup_power")));
                         }
                         if (NextPowerUp % 4 == 2)
                         {
                             PowerUps.push_back(new PowerUp(NextPowerUp % 4, glm::vec3(1.0f, 1.0f, 1.0f), 
-                                (*EnemyIterator)->Position, glm::vec2(0.0f, 70.0f), POWER_UP_SIZE, ResourceManager::GetTexture("powerup_weapon1")));
+                                (*EnemyIterator)->Position + PwrCentering, glm::vec2(0.0f, 70.0f), POWER_UP_SIZE, ResourceManager::GetTexture("powerup_weapon1")));
                         }
                         if (NextPowerUp % 4 == 3)
                         {
                             PowerUps.push_back(new PowerUp(NextPowerUp % 4, glm::vec3(1.0f, 1.0f, 1.0f), 
-                                (*EnemyIterator)->Position, glm::vec2(0.0f, 70.0f), POWER_UP_SIZE, ResourceManager::GetTexture("powerup_weapon2")));
+                                (*EnemyIterator)->Position + PwrCentering, glm::vec2(0.0f, 70.0f), POWER_UP_SIZE, ResourceManager::GetTexture("powerup_weapon2")));
                         }
                         NextPowerUp++;
 

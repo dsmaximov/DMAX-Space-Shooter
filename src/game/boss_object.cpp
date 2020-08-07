@@ -7,7 +7,7 @@ BossObject::BossObject(glm::vec2* ship_position)
 void BossObject::Init()
 {
 	InitialTime = std::chrono::steady_clock::now();
-	glm::vec2 pos(0.0f, -100.0f); //BOSS starting position
+	glm::vec2 pos(0.0f, -300.0f); //BOSS starting position
 	//set up all BOSS structure
 
 	for (int i = 0; i < StructureCountRow0; i++)
@@ -44,14 +44,18 @@ void BossObject::Init()
 }
 std::chrono::duration<GLint> BossObject::BossTimer()
 {
-	CurrentTime = std::chrono::steady_clock::now();
+	this->CurrentTime = std::chrono::steady_clock::now();
 	auto a = std::chrono::duration_cast<std::chrono::duration<GLint>> (CurrentTime - InitialTime);
 	return a;
 }
 void BossObject::Move(GLfloat dt, GLuint window_width, GLuint window_height)
 {
 	GLint TimerStage0 = 3;
-	GLint TimerStage2 = 10;
+	GLint TimerStage2 = 20;
+	GLint TimerStage7 = 3;
+	GLint TimerStage8 = 5;
+	GLint TimerStage9 = 5;
+
 	switch (this->Stage)
 	{
 	case 0: 	// initial movement into the screen
@@ -170,6 +174,36 @@ void BossObject::Move(GLfloat dt, GLuint window_width, GLuint window_height)
 			n->Position.x += dt * InitialBossVelocityX * 2.0f * sin(Stage6Angle);
 			n->Position.y += dt * InitialBossVelocityX * cos(Stage6Angle);
 		}
+		if (this->Strength < 1)
+		{
+			this->InitialTime = std::chrono::steady_clock::now();
+			for (auto n : this->BossTurrets)
+			{
+				n->Strength = 0;
+			}
+			this->Stage = 7;
+		}
+		break;
+	case 7:
+		if (BossTimer().count() >= TimerStage7)
+		{
+			this->Stage = 8;
+			this->InitialTime = std::chrono::steady_clock::now();
+		}
+		break;
+	case 8:
+		if (BossTimer().count() >= TimerStage8)
+		{
+			this->Stage = 9;
+			this->InitialTime = std::chrono::steady_clock::now();
+		}
+		break;
+	case 9:
+		if (BossTimer().count() >= TimerStage9)
+		{
+			this->Stage = 10;
+			this->InitialTime = std::chrono::steady_clock::now();
+		}
 		break;
 	}
 	UpdateShots(dt, window_width, window_height);
@@ -245,24 +279,34 @@ void BossObject::UpdateShots(GLfloat dt, GLuint window_width, GLuint window_heig
 			{
 			case 2:
 			{
-				if (this->Stage > 0 && BossTimer().count() % 3 == 0 && !n->ShotTaken)
+				GLfloat Speed = sqrt(SHOTVELOCITY2.x * SHOTVELOCITY2.x + SHOTVELOCITY2.y * SHOTVELOCITY2.y); //determine the magnitude of velocity
+				GLfloat DistX = ShipPosition->x - n->Position.x;
+				GLfloat DistY = ShipPosition->y - n->Position.y;
+				glm::vec2 Direction = glm::vec2(DistX / sqrt(DistX * DistX + DistY * DistY), DistY / sqrt(DistX * DistX + DistY * DistY)); //determine the direction of velocity - aim towards the ship
+				glm::vec2 ShotVelocity2 = glm::vec2(Speed * Direction);
+				if (this->Stage > 0 && BossTimer().count() % 2 == 0 && !n->ShotTaken)
 				{
+					//auto-target shot
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS1+1.0f, 1, ShotVelocity2, ResourceManager::GetTexture("shot2")));
+					//spreading shots
 					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - SHOTRADIUS2 * 2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(-SHOTVELOCITY2.x, 0.7f * SHOTVELOCITY2.y), ResourceManager::GetTexture("shot1")));
 					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x + SHOTRADIUS2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(SHOTVELOCITY2.x, 0.7f * SHOTVELOCITY2.y), ResourceManager::GetTexture("shot1")));
 					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - SHOTRADIUS2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(0.0f, SHOTVELOCITY2.y), ResourceManager::GetTexture("shot1")));
-					n->ShotTaken = true;
-				}
-				if (BossTimer().count() % 3 != 0) n->ShotTaken = false;
-				break;
-			}
-			case 1:
-				if (BossTimer().count() % 2 == 0)
-				{
-					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS1+5.0f, 2, glm::vec2(0.0f, 1000.0f), ResourceManager::GetTexture("laser")));
-					if (!n->ShotTaken) SoundEngineBoss->play2D("res/audio/player_boom.wav", GL_FALSE);
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - SHOTRADIUS2 * 2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(-1.4*SHOTVELOCITY2.x, 0.0f), ResourceManager::GetTexture("shot1")));
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x + SHOTRADIUS2, n->FiringPosition().y + n->Size.y), SHOTRADIUS2, 1, glm::vec2(1.4 * SHOTVELOCITY2.x, 0.0f), ResourceManager::GetTexture("shot1")));
 					n->ShotTaken = true;
 				}
 				if (BossTimer().count() % 2 != 0) n->ShotTaken = false;
+				break;
+			}
+			case 1:
+				if (BossTimer().count() % 3 == 0)
+				{
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS1+5.0f, 2, glm::vec2(0.0f, 1000.0f), ResourceManager::GetTexture("laser")));
+					if (!n->ShotTaken) SoundEngineBoss->play2D("res/audio/boss_laser.wav", GL_FALSE);
+					n->ShotTaken = true;
+				}
+				if (BossTimer().count() % 3 != 0) n->ShotTaken = false;
 				break;
 			}
 			break;
@@ -297,21 +341,28 @@ void BossObject::Draw(TextRenderer& trenderer, SpriteRenderer& renderer)
 	switch (this->Stage)
 	{
 	case 0:
-		trenderer.RenderText("WARNING!", 330.0f, 250.0f, 1.0f, glm::vec3(.9f, .1f, .1f));
-		trenderer.RenderText("LARGE MASS DETECTED", 250.0f, 280.0f, 1.0f, glm::vec3(.9f, .1f, .1f));
+		trenderer.RenderText("WARNING!", 330.0f, 250.0f, 1.0f, glm::vec3(.9f, .5f, .1f));
+		trenderer.RenderText("LARGE MASS DETECTED", 250.0f, 280.0f, 1.0f, glm::vec3(.9f, .5f, .1f));
+		break;
+	case 8:
+		trenderer.RenderText("CONGRATULATIONS!", 280.0f, 250.0f, 1.0f, glm::vec3(0.5f, 1.0f, .1f));
+		trenderer.RenderText("YOU HAVE SAVED THE GALAXY", 220.0f, 280.0f, 1.0f, glm::vec3(0.5f, 1.0f, .1f));
 		break;
 	default:
 		trenderer.RenderText("Boss: ", 5.0f, 30.0f, 1.0f, glm::vec3(1.0f, 1.0f, 1.0f));
-		GLfloat BossShieldSizeSprite = 2.0f;
+		GLfloat BossShieldSizeSprite = 1.0f;
 		for (GLint i = 0; i < this->Strength; i++)
 		{
 			renderer.DrawSprite(ResourceManager::GetTexture("player_shields"), glm::vec2(95.0f + i * BossShieldSizeSprite, 30.0f), glm::vec2(BossShieldSizeSprite, 20.0f));
 		}
 	}
+
+	//draw strenght and timer for debugging
 	std::string StrengthString = std::to_string(this->Strength);
-	std::string TimerString = std::to_string(BossTimer().count());
-	trenderer.RenderText(TimerString, 310.0f, 80.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
+	//std::string TimerString = std::to_string(BossTimer().count());
+	//trenderer.RenderText(TimerString, 310.0f, 80.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
 	trenderer.RenderText(StrengthString, 310.0f, 120.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
+
 	//draw boss shots
 	for (auto n : this->Shots)
 	{

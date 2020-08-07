@@ -145,12 +145,12 @@ void GameEnemies::UpdateShots(GLfloat dt, GLuint window_width, GLuint window_hei
             glm::vec2 ShotVelocity3 = glm::vec2(Speed * Direction);
             if (n->Position.y > 100 && n->NumberOfShots == 2)
             {
-                Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS3, 1, ShotVelocity3, ResourceManager::GetTexture("shot1")));
+                Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS3, 1, ShotVelocity3, ResourceManager::GetTexture("shot2")));
                 n->NumberOfShots--;
             }
             if (n->Position.y > 200 && n->NumberOfShots == 1)
             {
-                Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS3, 1, ShotVelocity3, ResourceManager::GetTexture("shot1")));
+                Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS3, 1, ShotVelocity3, ResourceManager::GetTexture("shot2")));
                 n->NumberOfShots--;
             }
         }
