@@ -93,7 +93,7 @@ void BossObject::Move(GLfloat dt, GLuint window_width, GLuint window_height)
 				LeftReached = true;
 			}
 		}
-		if (BossTimer().count() >= TimerStage2) this->Stage = 3;
+		if ((this->Strength < InitialStrenght * 0.7) || (BossTimer().count() >= TimerStage2)) this->Stage = 3;
 		break;
 	case 3:
 		// wobbling in x & y
@@ -357,11 +357,11 @@ void BossObject::Draw(TextRenderer& trenderer, SpriteRenderer& renderer)
 		}
 	}
 
-	//draw strenght and timer for debugging
-	std::string StrengthString = std::to_string(this->Strength);
+	//draw strenght and timer for debugging do not delete: can be used for future boss changes
+	//std::string StrengthString = std::to_string(this->Strength);
 	//std::string TimerString = std::to_string(BossTimer().count());
 	//trenderer.RenderText(TimerString, 310.0f, 80.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
-	trenderer.RenderText(StrengthString, 310.0f, 120.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
+	//trenderer.RenderText(StrengthString, 310.0f, 120.0f, 1.0f, glm::vec3(.3f, .9f, .7f));
 
 	//draw boss shots
 	for (auto n : this->Shots)

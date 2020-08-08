@@ -66,6 +66,7 @@ std::vector<PowerUp*>   PowerUps;
 int ActiveMenuButton;
 int NextPowerUp;
 int BossMusicFlag;
+GLfloat ExitAcceleration = 1.0f;
 glm::vec2 EndLevelFadeoutSize;
 Game::Game(GLuint width, GLuint height, GLuint scroll_speed)
         : State(GAME_MAIN_MENU), Keys(), KeysProcessed(), Width(width), Height(height), Level(1), ScrollSpeed(scroll_speed), KeyCode(0), PulseCoeff(1200.0f), PulseFlag(false), InvulCounter(0),
@@ -289,6 +290,11 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
         }
         if (Boss->Clean() == true) SoundEngineGame->play2D("res/audio/player_boom.wav", GL_FALSE);
         Boss->Move(dt, this->Width, this->Height);
+        if (Boss->Stage == 9)
+        {
+            ExitAcceleration += dt;
+            Ship->Position.y -= dt * PLAYER_VELOCITY * ExitAcceleration;
+        }
         if (Boss->Stage == 10)
         {
             if (Score > HighScoresData->LowestEntry()) this->State = GAME_ENTER_INITIALS;
