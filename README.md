@@ -5,9 +5,9 @@ Implementation of Breakout game based on [LearnOpenGL.com tutorial series](https
 
 Here are some snapshots of the finished game:
 
-![DMAX SpaceShooter](https://ibb.co/gzdjzvH)
-![DMAX SpaceShooter](https://ibb.co/9YgrhdW)
-![DMAX SpaceShooter](https://ibb.co/y8DrmZs)
+![Menu](https://i.ibb.co/HnCFnN1/Menu.png)
+![Level 1](https://i.ibb.co/LpRZrs1/Level1.png)
+![Level 3](https://i.ibb.co/qRzvLc1/Level3.png)
 ![Boss Fight](https://i.ibb.co/7nmw5kB/Boss.png)
 
 
