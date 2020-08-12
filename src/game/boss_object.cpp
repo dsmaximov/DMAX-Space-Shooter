@@ -267,7 +267,7 @@ void BossObject::UpdateShots(GLfloat dt, GLuint window_width, GLuint window_heig
 				glm::vec2 ShotVelocity1 = glm::vec2(Speed * Direction);
 				if (this->Stage > 0 && BossTimer().count() % 2 == 0 && n->ShotTaken == false)
 				{
-					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS1, 1, ShotVelocity1, ResourceManager::GetTexture("shot1")));
+					Shots.push_back(new ShotObject(glm::vec2(n->FiringPosition().x - 5.0f, n->FiringPosition().y + n->Size.y), SHOTRADIUS1, 1, ShotVelocity1, ResourceManager::GetTexture("shot2")));
 					n->ShotTaken = true;
 				}
 				if (BossTimer().count() % 2 != 0) n->ShotTaken = false;

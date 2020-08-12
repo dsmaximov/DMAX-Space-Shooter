@@ -1,12 +1,15 @@
-/*******************************************************************
-** This code is part of Breakout.
+/************************************************************************
+** This code is part of DMAX_Shooter.
 **
-** Breakout is free software: you can redistribute it and/or modify
+** DMAX_Shooter is free software: you can redistribute it and/or modify
 ** it under the terms of the CC BY 4.0 license as published by
 ** Creative Commons, either version 4 of the License, or (at your
 ** option) any later version.
-******************************************************************/
+** It is based on https://github.com/Shot511/GameBreakout.
+** Implementation of https://learnopengl.com/In-Practice/2D-Game/Breakout
+*************************************************************************/
 #include <iostream>
+#include <windows.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -25,7 +28,7 @@ const GLuint SCREEN_HEIGHT = 800;
 // The scrolling speed of background
 const GLuint SCROLL_SPEED = 70;
 
-Game Breakout(SCREEN_WIDTH, SCREEN_HEIGHT, SCROLL_SPEED);
+Game DMAX_Shooter(SCREEN_WIDTH, SCREEN_HEIGHT, SCROLL_SPEED);
 
 int main(int argc, char *argv[])
 {
@@ -36,7 +39,7 @@ int main(int argc, char *argv[])
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Breakout", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "DMAX_Shooter", nullptr, nullptr);
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -54,7 +57,7 @@ int main(int argc, char *argv[])
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Initialize game
-    Breakout.Init();
+    DMAX_Shooter.Init();
 
     // DeltaTime variables
     GLfloat deltaTime = 0.0f;
@@ -70,14 +73,14 @@ int main(int argc, char *argv[])
 
         //deltaTime = 0.001f;
         // Manage user input
-        Breakout.ProcessInput(deltaTime);
+        DMAX_Shooter.ProcessInput(deltaTime);
         // Update Game state
-        Breakout.Update(deltaTime, SCROLL_SPEED, glm::vec2(SCREEN_WIDTH, SCREEN_HEIGHT));
+        DMAX_Shooter.Update(deltaTime, SCROLL_SPEED, glm::vec2(SCREEN_WIDTH, SCREEN_HEIGHT));
 
         // Render
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        Breakout.Render();
+        DMAX_Shooter.Render();
 
         glfwSwapBuffers(window);
     }
@@ -94,20 +97,20 @@ void key_callback(GLFWwindow* window, GLint key, int scancode, int action, int m
     // When a user presses the escape key, we set the WindowShouldClose property to true, closing the application
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
-        if (Breakout.State == GAME_MAIN_MENU) glfwSetWindowShouldClose(window, GL_TRUE);
+        if (DMAX_Shooter.State == GAME_MAIN_MENU) glfwSetWindowShouldClose(window, GL_TRUE);
   // TODO delete     if (Breakout.State == GAME_ACTIVE || Breakout.State == GAME_LOSE || Breakout.State == GAME_HIGHSCORE) Breakout.State = GAME_MENU;
     }
 
     if (key >= 0 && key < 1024)
     {
         if (action == GLFW_PRESS)
-            Breakout.Keys[key] = GL_TRUE;
+            DMAX_Shooter.Keys[key] = GL_TRUE;
         else if (action == GLFW_RELEASE)
         {
-            Breakout.Keys[key] = GL_FALSE;
-            Breakout.KeysProcessed[key] = GL_FALSE;
+            DMAX_Shooter.Keys[key] = GL_FALSE;
+            DMAX_Shooter.KeysProcessed[key] = GL_FALSE;
         }
     }
-    Breakout.KeyCode = key;
-    Breakout.KeyAction = action;
+    DMAX_Shooter.KeyCode = key;
+    DMAX_Shooter.KeyAction = action;
 }

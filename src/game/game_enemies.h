@@ -1,11 +1,14 @@
-/*******************************************************************
-** This code is part of Breakout.
+/************************************************************************
+** This code is part of DMAX_Shooter.
 **
-** Breakout is free software: you can redistribute it and/or modify
+** DMAX_Shooter is free software: you can redistribute it and/or modify
 ** it under the terms of the CC BY 4.0 license as published by
 ** Creative Commons, either version 4 of the License, or (at your
 ** option) any later version.
-******************************************************************/
+** It is based on https://github.com/Shot511/GameBreakout.
+** Implementation of https://learnopengl.com/In-Practice/2D-Game/Breakout
+*************************************************************************/
+
 #ifndef GAMEENEMIES_H
 #define GAMEENEMIES_H
 #include <vector>
@@ -51,7 +54,7 @@ private:
     GLfloat       ENEMYRADIUS1 = 35.0f;
     glm::vec2     ENEMYVELOCITY1 = glm::vec2 (0.0f, 100.0f);
     Texture2D*          ENEMYTEXTURE1 = ResourceManager::GetTexture("enemy1");
-    GLint         ENEMYSTRENGHT1 = 3;
+    GLint         ENEMYSTRENGHT1 = 4;
     GLint         SCOREPOINTS1 = 10;
     GLint         NUMBEROFSHOTS1 = 1;
     GLfloat       SHOTRADIUS1 = 5.0f;
@@ -60,7 +63,7 @@ private:
     GLfloat       ENEMYRADIUS2 = 35.0f;
     glm::vec2     ENEMYVELOCITY2 = glm::vec2(0.0f, 100.0f);
     Texture2D*          ENEMYTEXTURE2 = ResourceManager::GetTexture("enemy2");
-    GLint         ENEMYSTRENGHT2 = 10;
+    GLint         ENEMYSTRENGHT2 = 6;
     GLint         SCOREPOINTS2 = 20;
     GLint         NUMBEROFSHOTS2 = 2;
     GLfloat       SHOTRADIUS2 = 5.0f;
@@ -78,7 +81,7 @@ private:
     GLfloat       ENEMYRADIUS4 = 35.0f;
     glm::vec2     ENEMYVELOCITY4 = glm::vec2(0.0f, 100.0f);
     Texture2D*       ENEMYTEXTURE4 = ResourceManager::GetTexture("enemy4");
-    GLint         ENEMYSTRENGHT4 = 6;
+    GLint         ENEMYSTRENGHT4 = 5;
     GLint         SCOREPOINTS4 = 20;
     GLint         NUMBEROFSHOTS4 = 2;
     GLfloat       SHOTRADIUS4 = 5.0f;

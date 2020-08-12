@@ -1,3 +1,14 @@
+/************************************************************************
+** This code is part of DMAX_Shooter.
+**
+** DMAX_Shooter is free software: you can redistribute it and/or modify
+** it under the terms of the CC BY 4.0 license as published by
+** Creative Commons, either version 4 of the License, or (at your
+** option) any later version.
+** It is based on https://github.com/Shot511/GameBreakout.
+** Implementation of https://learnopengl.com/In-Practice/2D-Game/Breakout
+*************************************************************************/
+
 #ifndef GAMESHOTS_H
 #define GAMESHOTS_H
 
