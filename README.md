@@ -1,9 +1,14 @@
-# GameBreakout
+# DMAX SpaceShooter
+Based on the code of https://github.com/Shot511/GameBreakout
+
 Implementation of Breakout game based on [LearnOpenGL.com tutorial series](https://learnopengl.com/In-Practice/2D-Game/Breakout).
 
 Here's the snapshot of the finished game:
 
-![Breakout game](https://learnopengl.com/img/in-practice/breakout/cover.png)
+![DMAX SpaceShooter](https://ibb.co/gzdjzvH)
+![DMAX SpaceShooter](https://ibb.co/9YgrhdW)
+![DMAX SpaceShooter](https://ibb.co/y8DrmZs)
+![DMAX SpaceShooter](https://ibb.co/X7RhgY6)
 
 
 # Build the code

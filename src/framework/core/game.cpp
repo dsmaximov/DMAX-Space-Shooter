@@ -143,11 +143,6 @@ void Game::Init()
     ResourceManager::LoadTexture("res/textures/powerup_power.png", GL_TRUE, "powerup_power");
     ResourceManager::LoadTexture("res/textures/powerup_weapon1.png", GL_TRUE, "powerup_weapon1");
     ResourceManager::LoadTexture("res/textures/powerup_weapon2.png", GL_TRUE, "powerup_weapon2");
-    ResourceManager::LoadTexture("res/textures/powerup_sticky.png", GL_TRUE, "powerup_sticky");
-    ResourceManager::LoadTexture("res/textures/powerup_increase.png", GL_TRUE, "powerup_increase");
-    ResourceManager::LoadTexture("res/textures/powerup_confuse.png", GL_TRUE, "powerup_confuse");
-    ResourceManager::LoadTexture("res/textures/powerup_chaos.png", GL_TRUE, "powerup_chaos");
-    ResourceManager::LoadTexture("res/textures/powerup_passthrough.png", GL_TRUE, "powerup_passthrough");
     ResourceManager::LoadTexture("res/textures/button.png", GL_TRUE, "button");
     ResourceManager::LoadTexture("res/textures/selection.png", GL_TRUE, "selection");
     ResourceManager::LoadTexture("res/textures/player_shields.png", GL_TRUE, "player_shields");
@@ -197,10 +192,8 @@ void Game::Init()
     ActiveMenuButton = 1;
     // Configure game objects
     glm::vec2 playerPos = glm::vec2(this->Width / 2 - PLAYER_SIZE.x / 2, this->Height - PLAYER_SIZE.y*3);
-    //Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
     Ship = new ShipObject(playerPos, PLAYER_SIZE, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("ship"));
     Boss = new BossObject(&Ship->Position);
-    //Enemy = new EnemyObject(glm::vec2(this->Width/2, PLAYER_SIZE.y),30.0f, VELOCITY, ResourceManager::GetTexture("enemy"),1);
     glm::vec2 ballPos = glm::vec2(Ship->FiringPosition().x - BALL_RADIUS, Ship->FiringPosition().y - BALL_RADIUS);
     glm::vec2 ballPos_1 = glm::vec2(Ship->FiringPosition().x, Ship->FiringPosition().y - BALL_RADIUS);
     AllGameEnemies = new GameEnemies(&Ship->Position);
@@ -211,8 +204,7 @@ void Game::Init()
     std::string LFString = "res/levels/" + std::to_string(Level) + ".lvl";
     const GLchar* LevelFile = LFString.c_str();
     AllGameEnemies->Load(LevelFile, this->Width, this->Height * 0.5);
-    //GameEnemies Wave1; Wave1.Load("res/levels/two.lvl", this->Width, this->Height * 0.5);
-    //Set particle engines
+    //Set particle engines for ship engines
     ParticlesEngineLeft = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
     ParticlesEngineRight = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
     this->Score = 0;
@@ -410,8 +402,6 @@ void Game::Update(GLfloat dt, GLfloat scroll_speed, glm::vec2 screen_size)
     UpdateExplosionParticleEngines(ShieldHitParticleEngines, dt);
     // Clear PowerUps
     PowerUps.erase(std::remove_if(PowerUps.begin(), PowerUps.end(), [&screen_size](PowerUp* powerup)->bool {return powerup->Position.y > screen_size.y; }), PowerUps.end()); 
-    // Update PowerUps
-    this->UpdatePowerUps(dt);
     // Update Menu Buttons
     for (auto n : AllMenuButtons)
     {
@@ -484,7 +474,6 @@ void Game::ProcessInput(GLfloat dt)
             //start a new game
             if (ButtonNew->ButtonPressed)
             {
-                //this->State = GAME_ACTIVE;
                 this->State = GAME_ACTIVE;
                 this->ReInit();
                 this->Init();
@@ -687,7 +676,6 @@ void Game::Render()
     }
     if (this->State == GAME_ENTER_INITIALS)
     {
-        //Text->RenderText("GAME OVER", this->Width / 2 - 115, this->Height / 2 - 100, 1.5f, glm::vec3(1.0f, 1.0f, .7f));
         HighScoresData->AddInitials(KeyCode, KeyAction, this->Score);
     }
     if (this->State == GAME_MAIN_MENU)
@@ -780,104 +768,12 @@ void Game::ResetPlayer()
 // PowerUps
 GLboolean IsOtherPowerUpActive(std::vector<PowerUp> &powerUps, std::string type);
 
-void Game::UpdatePowerUps(GLfloat dt)
-{
-    //for (PowerUp &powerUp : this->PowerUps)
-    //{
-    //    powerUp.Position += powerUp.Velocity * dt;
-    //    if (powerUp.Activated)
-    //    {
-    //        powerUp.Duration -= dt;
-
-    //        if (powerUp.Duration <= 0.0f)
-    //        {
-    //            // Remove powerup from list (will later be removed)
-    //            powerUp.Activated = GL_FALSE;
-    //            // Deactivate effects
-    //            if (powerUp.Type == "sticky")
-    //            {
-    //                if (!IsOtherPowerUpActive(this->PowerUps, "sticky"))
-    //                {	// Only reset if no other PowerUp of type sticky is active
-    //                    Ship->Color = glm::vec3(1.0f);
-    //                }
-    //            }
-    //           
-    //            else if (powerUp.Type == "confuse")
-    //            {
-    //                if (!IsOtherPowerUpActive(this->PowerUps, "confuse"))
-    //                {	// Only reset if no other PowerUp of type confuse is active
-    //                    Effects->Confuse = GL_FALSE;
-    //                }
-    //            }
-    //            else if (powerUp.Type == "chaos")
-    //            {
-    //                if (!IsOtherPowerUpActive(this->PowerUps, "chaos"))
-    //                {	// Only reset if no other PowerUp of type chaos is active
-    //                    Effects->Chaos = GL_FALSE;
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
-    //// Remove all PowerUps from vector that are destroyed AND !activated (thus either off the map or finished)
-    //// Note we use a lambda expression to remove each PowerUp which is destroyed and not activated
-    //this->PowerUps.erase(std::remove_if(this->PowerUps.begin(), this->PowerUps.end(),
-    //                                    [](const PowerUp &powerUp) { return powerUp.Destroyed && !powerUp.Activated; }
-    //), this->PowerUps.end());
-}
-
 GLboolean ShouldSpawn(GLuint chance)
 {
     GLuint random = rand() % chance;
     return random == 0;
 }
-void Game::SpawnPowerUps(GameObject &block)
-{
-    //if (ShouldSpawn(75)) // 1 in 75 chance
-    //    this->PowerUps.push_back(PowerUp("speed", glm::vec3(0.5f, 0.5f, 1.0f), 0.0f, block.Position, ResourceManager::GetTexture("powerup_speed")));
-    //if (ShouldSpawn(75))
-    //    this->PowerUps.push_back(PowerUp("sticky", glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, block.Position, ResourceManager::GetTexture("powerup_sticky")));
-    //if (ShouldSpawn(75))
-    //    this->PowerUps.push_back(PowerUp("pass-through", glm::vec3(0.5f, 1.0f, 0.5f), 10.0f, block.Position, ResourceManager::GetTexture("powerup_passthrough")));
-    //if (ShouldSpawn(75))
-    //    this->PowerUps.push_back(PowerUp("pad-size-increase", glm::vec3(1.0f, 0.6f, 0.4), 0.0f, block.Position, ResourceManager::GetTexture("powerup_increase")));
-    //if (ShouldSpawn(15)) // Negative powerups should spawn more often
-    //    this->PowerUps.push_back(PowerUp("confuse", glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_confuse")));
-    //if (ShouldSpawn(15))
-    //    this->PowerUps.push_back(PowerUp("chaos", glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, block.Position, ResourceManager::GetTexture("powerup_chaos")));
-}
 
-void ActivatePowerUp(PowerUp &powerUp)
-{
-//    // Initiate a powerup based type of powerup
-//    if (powerUp.Type == "pad-size-increase")
-//    {
-//        Ship->Size.x += 50;
-//    }
-//    else if (powerUp.Type == "confuse")
-//    {
-//        if (!Effects->Chaos)
-//            Effects->Confuse = GL_TRUE; // Only activate if chaos wasn't already active
-//    }
-//    else if (powerUp.Type == "chaos")
-//    {
-//        if (!Effects->Confuse)
-//            Effects->Chaos = GL_TRUE;
-//    }
-}
-
-GLboolean IsOtherPowerUpActive(std::vector<PowerUp> &powerUps, std::string type)
-{
-    //// Check if another PowerUp of the same type is still active
-    //// in which case we don't disable its effect (yet)
-    //for (const PowerUp &powerUp : powerUps)
-    //{
-    //    if (powerUp.Activated)
-    //        if (powerUp.Type == type)
-    //            return GL_TRUE;
-    //}
-    return GL_FALSE;
-}
 
 // Collision detection
 GLboolean CheckCollisionShotEnemy(ShotObject &one, EnemyObject &two);
@@ -963,19 +859,15 @@ void Game::DoCollisions()
                             *(*ShotIterator), 2, glm::vec2(0, 0), glm::vec4(0.0f, 0.5f, 1.0f, 1.0f), 0.4f));
 
                     }
-                    if (Boss->Strength <= 0)
+                    if (Boss->Strength == 0)
                     {
-                        //ExplosionParticleEngines.push_back(new ParticleGeneratorExplosion(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("explosion"), 500,
-                        //    *(*EnemyIterator), 2, (*EnemyIterator)->Size / 2.0f, glm::vec4(1.0f, 1.0f, 0.0f, 1.0f), 0.7f));
-                        //Score += (*EnemyIterator)->ScorePoints;
+                        this->Score += Boss->KillScore;
                     }
                 }
             }
             AllPlayerShots->Clean();
         }
-
     }
-
     //Collisions between player and enemies
     for (auto EnemyIterator = AllGameEnemies->Enemies.begin(); EnemyIterator != AllGameEnemies->Enemies.end(); EnemyIterator++)
     {
@@ -1075,7 +967,7 @@ void Game::DoCollisions()
 
 
 
-GLboolean CheckCollisionShotEnemy(ShotObject& shot, EnemyObject& enemy) // AABB - AABB collision
+GLboolean CheckCollisionShotEnemy(ShotObject& shot, EnemyObject& enemy) 
 {
     // Collision x-axis?
     bool collisionX = shot.Position.x + shot.Size.x >= enemy.Position.x &&
@@ -1088,7 +980,7 @@ GLboolean CheckCollisionShotEnemy(ShotObject& shot, EnemyObject& enemy) // AABB 
     return a;// collisionX&& collisionY;
 }
 
-GLboolean CheckCollisionShipEnemy(ShipObject& ship, EnemyObject& enemy) // AABB - AABB collision
+GLboolean CheckCollisionShipEnemy(ShipObject& ship, EnemyObject& enemy) 
 {
     GLfloat r1 = ship.Radius;
     GLfloat r2 = enemy.Radius;
@@ -1100,7 +992,7 @@ GLboolean CheckCollisionShipEnemy(ShipObject& ship, EnemyObject& enemy) // AABB 
     return (d < r1 + r2);
 }
 
-GLboolean CheckCollisionShipShot(ShipObject& ship, ShotObject& shot) // AABB - AABB collision
+GLboolean CheckCollisionShipShot(ShipObject& ship, ShotObject& shot) 
 {
     // Collision x-axis?
     GLfloat r1 = ship.Radius;
@@ -1113,7 +1005,7 @@ GLboolean CheckCollisionShipShot(ShipObject& ship, ShotObject& shot) // AABB - A
     return (d < r1 + r2);
 }
 
-GLboolean CheckCollisionShipPowerUp(ShipObject& ship, PowerUp& power_up) // AABB - AABB collision
+GLboolean CheckCollisionShipPowerUp(ShipObject& ship, PowerUp& power_up) 
 {
     // Collision x-axis?
     bool collisionX = ship.Position.x + ship.Size.x >= power_up.Position.x &&
@@ -1125,39 +1017,6 @@ GLboolean CheckCollisionShipPowerUp(ShipObject& ship, PowerUp& power_up) // AABB
     GLboolean a = collisionX && collisionY;
     return a;// collisionX&& collisionY;
 }
-
-//GLboolean CheckCollision(GameObject &one, GameObject &two) // AABB - AABB collision
-//{
-//    // Collision x-axis?
-//    bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
-//                      two.Position.x + two.Size.x >= one.Position.x;
-//    // Collision y-axis?
-//    bool collisionY = one.Position.y + one.Size.y >= two.Position.y &&
-//                      two.Position.y + two.Size.y >= one.Position.y;
-//    // Collision only if on both axes
-//    return collisionX && collisionY;
-//}
-
-//Collision CheckCollision(BallObject &one, GameObject &two) // AABB - Circle collision
-//{
-//    // Get center point circle first
-//    glm::vec2 center(one.Position + one.Radius);
-//    // Calculate AABB info (center, half-extents)
-//    glm::vec2 aabb_half_extents(two.Size.x / 2, two.Size.y / 2);
-//    glm::vec2 aabb_center(two.Position.x + aabb_half_extents.x, two.Position.y + aabb_half_extents.y);
-//    // Get difference vector between both centers
-//    glm::vec2 difference = center - aabb_center;
-//    glm::vec2 clamped = glm::clamp(difference, -aabb_half_extents, aabb_half_extents);
-//    // Now that we know the the clamped values, add this to AABB_center and we get the value of box closest to circle
-//    glm::vec2 closest = aabb_center + clamped;
-//    // Now retrieve vector between center circle and closest point AABB and check if length < radius
-//    difference = closest - center;
-//
-//    if (glm::length(difference) < one.Radius) // not <= since in that case a collision also occurs when object one exactly touches object two, which they are at the end of each collision resolution stage.
-//        return std::make_tuple(GL_TRUE, VectorDirection(difference), difference);
-//    else
-//        return std::make_tuple(GL_FALSE, UP, glm::vec2(0, 0));
-//}
 
 // Calculates which direction a vector is facing (N,E,S or W)
 Direction VectorDirection(glm::vec2 target)

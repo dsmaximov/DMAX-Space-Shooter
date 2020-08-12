@@ -107,10 +107,7 @@ public:
     // Reset
     void ResetLevel();
     void ResetPlayer();
-    // Powerups
-    void SpawnPowerUps(GameObject &block);
-    void UpdatePowerUps(GLfloat dt);
-  //  void UpdateExplosionParticleEngines(std::vector <ParticleGeneratorExplosion*> explosionvector, GLfloat dt);
+
 private:
     const int InitialPlayerShields = 10;
     // GAME_LEVEL_COMPLETE variables

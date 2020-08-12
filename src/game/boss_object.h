@@ -32,6 +32,7 @@ class BossObject
 {
 public:
     const GLint InitialStrenght = 660;
+    const GLint KillScore = 1000;
 	GLint Strength;
     GLuint Stage;
 	BossObject(glm::vec2* ship_position);
