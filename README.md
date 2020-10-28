@@ -3,8 +3,6 @@ Based on the code of https://github.com/Shot511/GameBreakout
 
 Implementation of Breakout game based on [LearnOpenGL.com tutorial series](https://learnopengl.com/In-Practice/2D-Game/Breakout).
 
-Here are some snapshots of the finished game:
-
 Graphics
 Ship Design: www.clipartmax.com
 Background, shots, powerups, explosions: me :)
@@ -20,6 +18,8 @@ Image Editing in Paint.NET
 Sound Editing in Wave Editor
 
 Full playthrough https://youtu.be/y11_08XxnoU
+
+Here are some snapshots of the finished game:
 
 ![Menu](https://i.ibb.co/HnCFnN1/Menu.png)
 ![Level 1](https://i.ibb.co/LpRZrs1/Level1.png)
