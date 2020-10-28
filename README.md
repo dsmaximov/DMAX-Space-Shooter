@@ -3,13 +3,14 @@ Based on the code of https://github.com/Shot511/GameBreakout
 
 Implementation of Breakout game based on [LearnOpenGL.com tutorial series](https://learnopengl.com/In-Practice/2D-Game/Breakout).
 
-Graphics
+
+**Graphics**
 
 Ship Design: www.clipartmax.com
 
 Background, shots, powerups, explosions: me :)
 
-Sounds/Music
+**Sounds/Music**
 
 Menu Music: Urban Future by Eric Matyas www.soundimage.com
 
@@ -19,11 +20,15 @@ Game Music: Fesilian Studios www.fesilianstudios.com
 
 Sound Effects: www.freesound.com
 
+**Software**
+
 Created in Visual Studio / C++ / cmake
 
 Image Editing in Paint.NET
 
 Sound Editing in Wave Editor
+
+# Sample
 
 Full playthrough https://youtu.be/y11_08XxnoU
 
